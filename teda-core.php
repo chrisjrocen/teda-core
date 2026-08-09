@@ -117,6 +117,10 @@ if ( null !== $teda_core_error ) {
 	return;
 }
 
+// Global template/block helpers (teda_field, etc.). Functions are not
+// autoloaded, so require the file directly.
+require_once TEDA_CORE_PATH . 'src/helpers.php';
+
 // Activation / deactivation lifecycle (never deletes content — P01 task 4).
 register_activation_hook( __FILE__, array( \Teda_Core\Plugin::class, 'activate' ) );
 register_deactivation_hook( __FILE__, array( \Teda_Core\Plugin::class, 'deactivate' ) );

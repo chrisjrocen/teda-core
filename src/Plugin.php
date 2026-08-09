@@ -38,7 +38,7 @@ final class Plugin {
 	private const SUBSYSTEMS = array(
 		PostTypes\Registry::class,
 		Taxonomies\Registry::class,
-		// P03: Teda_Core\Fields\Registry::class,
+		Fields\Registry::class,
 		// P07: Teda_Core\Blocks\Registry::class,
 		// P14: Teda_Core\Cron\Scheduler::class,
 		// P16: Teda_Core\Redirects\Map::class,
