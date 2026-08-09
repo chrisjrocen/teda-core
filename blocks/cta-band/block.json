@@ -1,0 +1,24 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "teda/cta-band",
+	"title": "TEDA CTA Band",
+	"category": "teda",
+	"icon": "megaphone",
+	"description": "A colour-blocked call-to-action band with a heading, a sentence and up to two buttons. Choose brown, blue or sand.",
+	"keywords": ["teda", "cta", "call to action", "band"],
+	"textdomain": "teda-core",
+	"attributes": {
+		"heading": { "type": "string", "default": "Ready to be part of the movement?" },
+		"body": { "type": "string", "default": "Join young people across the Teso sub region already leading change in education, culture, and community development.", "teda": { "control": "textarea" } },
+		"variant": { "type": "string", "default": "brown", "enum": ["brown", "blue", "sand"] },
+		"cta_label": { "type": "string", "default": "Join TEDA Today" },
+		"cta_url": { "type": "string", "default": "", "teda": { "control": "url" } },
+		"cta2_label": { "type": "string", "default": "Support our work" },
+		"cta2_url": { "type": "string", "default": "", "teda": { "control": "url" } }
+	},
+	"supports": {
+		"html": false,
+		"align": ["full"]
+	}
+}

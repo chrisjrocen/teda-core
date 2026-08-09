@@ -32,6 +32,20 @@ script is hand-written ES5.
    number → number, boolean → toggle).
 4. Add the block's CSS to `teda-child` (a `teda-<name>` wrapper class is emitted).
 
+### Attribute control hints
+
+An attribute may carry an optional `teda` object in `block.json` to steer its editor
+control and group it under a panel — no per-block JS:
+
+```json
+"s1_image": { "type": "integer", "default": 0, "teda": { "control": "media", "group": "Slide 1" } }
+```
+
+- `control`: `media` (image picker → stores the attachment ID), `url` (URL field) or
+  `textarea` (multi-line). Omit to derive from `type`.
+- `group`: the PanelBody the control lives under. Ungrouped controls share one default
+  panel. Panels render in first-seen order; the first is open.
+
 ## Contracts provided by `Block_Renderer`
 
 - `render()` wraps output with `get_block_wrapper_attributes()` and a

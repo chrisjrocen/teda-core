@@ -1,0 +1,21 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "teda/focus-grid",
+	"title": "TEDA Focus Grid",
+	"category": "teda",
+	"icon": "grid-view",
+	"description": "The focus areas grid, drawn live from Focus Area posts in the order you set. Each card shows an icon, title, summary and its accent colour — colour is never the only signal.",
+	"keywords": ["teda", "focus", "programmes", "grid"],
+	"textdomain": "teda-core",
+	"attributes": {
+		"eyebrow": { "type": "string", "default": "What We Do" },
+		"heading": { "type": "string", "default": "Our focus areas" },
+		"intro": { "type": "string", "default": "Six areas of practical, measurable work that matter most to Teso youth and their communities.", "teda": { "control": "textarea" } },
+		"count": { "type": "integer", "default": 6 }
+	},
+	"supports": {
+		"html": false,
+		"align": ["wide", "full"]
+	}
+}
