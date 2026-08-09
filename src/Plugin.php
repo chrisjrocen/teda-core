@@ -36,8 +36,8 @@ final class Plugin {
 	 * @var array<int, class-string>
 	 */
 	private const SUBSYSTEMS = array(
-		// P02: Teda_Core\PostTypes\Registry::class,
-		// P02: Teda_Core\Taxonomies\Registry::class,
+		PostTypes\Registry::class,
+		Taxonomies\Registry::class,
 		// P03: Teda_Core\Fields\Registry::class,
 		// P07: Teda_Core\Blocks\Registry::class,
 		// P14: Teda_Core\Cron\Scheduler::class,
@@ -45,6 +45,12 @@ final class Plugin {
 		Support\Env::class,
 		Admin\Notices::class,
 	);
+
+	/**
+	 * Guards register_subsystems() against running twice (it is called on
+	 * plugins_loaded and again during activation).
+	 */
+	private bool $booted = false;
 
 	private static ?Plugin $instance = null;
 
@@ -87,6 +93,11 @@ final class Plugin {
 	 * Instantiate and register each subsystem that exists and is Bootable.
 	 */
 	public function register_subsystems(): void {
+		if ( $this->booted ) {
+			return;
+		}
+		$this->booted = true;
+
 		foreach ( self::SUBSYSTEMS as $class ) {
 			if ( ! class_exists( $class ) || ! is_subclass_of( $class, Bootable::class ) ) {
 				continue;
@@ -135,17 +146,33 @@ final class Plugin {
 	 * Never deletes content.
 	 */
 	public static function activate(): void {
+		$plugin = self::instance();
+
+		// During activation the request has already passed `plugins_loaded` and
+		// `init`, so nothing has hooked or registered yet. Boot the subsystems
+		// (this hooks the term seeders to `teda_core/upgrade`) and register the
+		// post types + taxonomies immediately, so both the seeding below and the
+		// rewrite flush at the end see them.
+		$plugin->register_subsystems();
+
+		$post_types = $plugin->subsystem( PostTypes\Registry::class );
+		if ( $post_types instanceof PostTypes\Registry ) {
+			$post_types->register_post_types();
+		}
+		$taxonomies = $plugin->subsystem( Taxonomies\Registry::class );
+		if ( $taxonomies instanceof Taxonomies\Registry ) {
+			$taxonomies->register_taxonomies();
+		}
+
+		// Seed fixed terms + News categories (fires `teda_core/upgrade`).
+		$plugin->run_migrations();
+		update_option( self::VERSION_OPTION, TEDA_CORE_VERSION );
+
 		if ( ! wp_next_scheduled( self::CRON_DAILY ) ) {
 			wp_schedule_event( time() + HOUR_IN_SECONDS, 'daily', self::CRON_DAILY );
 		}
 
-		self::instance()->run_migrations();
-		update_option( self::VERSION_OPTION, TEDA_CORE_VERSION );
-
-		// Subsystems register on plugins_loaded during normal requests, but the
-		// activation request already passed that hook, so register now to ensure
-		// rewrite rules exist before the flush.
-		self::instance()->register_subsystems();
+		// Post-type rewrite rules now exist, so this captures the archive routes.
 		flush_rewrite_rules();
 	}
 
