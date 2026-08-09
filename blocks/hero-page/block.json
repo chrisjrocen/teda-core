@@ -6,17 +6,46 @@
 	"category": "teda",
 	"icon": "cover-image",
 	"description": "The inner-page hero: breadcrumb, page title and an optional lead sentence, on a brown or blue band. Breadcrumbs come from Blocksy so they stay consistent site-wide.",
-	"keywords": ["teda", "hero", "page", "title", "breadcrumb"],
+	"keywords": [
+		"teda",
+		"hero",
+		"page",
+		"title",
+		"breadcrumb"
+	],
 	"textdomain": "teda-core",
 	"attributes": {
-		"title": { "type": "string", "default": "" },
-		"lead": { "type": "string", "default": "", "teda": { "control": "textarea" } },
-		"variant": { "type": "string", "default": "brown", "enum": ["brown", "blue"] },
-		"show_breadcrumb": { "type": "boolean", "default": true }
+		"title": {
+			"type": "string",
+			"default": "",
+			"role": "content"
+		},
+		"lead": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"control": "textarea"
+			},
+			"role": "content"
+		},
+		"variant": {
+			"type": "string",
+			"default": "brown",
+			"enum": [
+				"brown",
+				"blue"
+			]
+		},
+		"show_breadcrumb": {
+			"type": "boolean",
+			"default": true
+		}
 	},
 	"supports": {
 		"html": false,
-		"align": ["full"],
+		"align": [
+			"full"
+		],
 		"anchor": true
 	}
 }

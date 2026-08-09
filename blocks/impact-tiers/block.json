@@ -6,45 +6,231 @@
 	"category": "teda",
 	"icon": "money-alt",
 	"description": "Donation tiers: an amount, what it buys and an optional progress bar. Progress bars carry a text label as well as a fill, so colour is never the only signal.",
-	"keywords": ["teda", "impact", "donate", "tiers"],
+	"keywords": [
+		"teda",
+		"impact",
+		"donate",
+		"tiers"
+	],
 	"textdomain": "teda-core",
 	"attributes": {
-		"eyebrow": { "type": "string", "default": "Your impact" },
-		"heading": { "type": "string", "default": "What your gift does" },
-		"show_header": { "type": "boolean", "default": true },
-
-		"tier1_amount": { "type": "string", "default": "", "teda": { "group": "Tier 1" } },
-		"tier1_usd": { "type": "string", "default": "", "teda": { "group": "Tier 1" } },
-		"tier1_desc": { "type": "string", "default": "", "teda": { "control": "textarea", "group": "Tier 1" } },
-		"tier1_progress": { "type": "integer", "default": 0, "teda": { "group": "Tier 1" } },
-		"tier1_progress_label": { "type": "string", "default": "", "teda": { "group": "Tier 1" } },
-
-		"tier2_amount": { "type": "string", "default": "", "teda": { "group": "Tier 2" } },
-		"tier2_usd": { "type": "string", "default": "", "teda": { "group": "Tier 2" } },
-		"tier2_desc": { "type": "string", "default": "", "teda": { "control": "textarea", "group": "Tier 2" } },
-		"tier2_progress": { "type": "integer", "default": 0, "teda": { "group": "Tier 2" } },
-		"tier2_progress_label": { "type": "string", "default": "", "teda": { "group": "Tier 2" } },
-
-		"tier3_amount": { "type": "string", "default": "", "teda": { "group": "Tier 3" } },
-		"tier3_usd": { "type": "string", "default": "", "teda": { "group": "Tier 3" } },
-		"tier3_desc": { "type": "string", "default": "", "teda": { "control": "textarea", "group": "Tier 3" } },
-		"tier3_progress": { "type": "integer", "default": 0, "teda": { "group": "Tier 3" } },
-		"tier3_progress_label": { "type": "string", "default": "", "teda": { "group": "Tier 3" } },
-
-		"tier4_amount": { "type": "string", "default": "", "teda": { "group": "Tier 4" } },
-		"tier4_usd": { "type": "string", "default": "", "teda": { "group": "Tier 4" } },
-		"tier4_desc": { "type": "string", "default": "", "teda": { "control": "textarea", "group": "Tier 4" } },
-		"tier4_progress": { "type": "integer", "default": 0, "teda": { "group": "Tier 4" } },
-		"tier4_progress_label": { "type": "string", "default": "", "teda": { "group": "Tier 4" } },
-
-		"tier5_amount": { "type": "string", "default": "", "teda": { "group": "Tier 5" } },
-		"tier5_usd": { "type": "string", "default": "", "teda": { "group": "Tier 5" } },
-		"tier5_desc": { "type": "string", "default": "", "teda": { "control": "textarea", "group": "Tier 5" } },
-		"tier5_progress": { "type": "integer", "default": 0, "teda": { "group": "Tier 5" } },
-		"tier5_progress_label": { "type": "string", "default": "", "teda": { "group": "Tier 5" } }
+		"eyebrow": {
+			"type": "string",
+			"default": "Your impact"
+		},
+		"heading": {
+			"type": "string",
+			"default": "What your gift does"
+		},
+		"show_header": {
+			"type": "boolean",
+			"default": true
+		},
+		"tier1_amount": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Tier 1"
+			},
+			"role": "content"
+		},
+		"tier1_usd": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Tier 1"
+			},
+			"role": "content"
+		},
+		"tier1_desc": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"control": "textarea",
+				"group": "Tier 1"
+			},
+			"role": "content"
+		},
+		"tier1_progress": {
+			"type": "integer",
+			"default": 0,
+			"teda": {
+				"group": "Tier 1"
+			}
+		},
+		"tier1_progress_label": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Tier 1"
+			},
+			"role": "content"
+		},
+		"tier2_amount": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Tier 2"
+			},
+			"role": "content"
+		},
+		"tier2_usd": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Tier 2"
+			},
+			"role": "content"
+		},
+		"tier2_desc": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"control": "textarea",
+				"group": "Tier 2"
+			},
+			"role": "content"
+		},
+		"tier2_progress": {
+			"type": "integer",
+			"default": 0,
+			"teda": {
+				"group": "Tier 2"
+			}
+		},
+		"tier2_progress_label": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Tier 2"
+			},
+			"role": "content"
+		},
+		"tier3_amount": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Tier 3"
+			},
+			"role": "content"
+		},
+		"tier3_usd": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Tier 3"
+			},
+			"role": "content"
+		},
+		"tier3_desc": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"control": "textarea",
+				"group": "Tier 3"
+			},
+			"role": "content"
+		},
+		"tier3_progress": {
+			"type": "integer",
+			"default": 0,
+			"teda": {
+				"group": "Tier 3"
+			}
+		},
+		"tier3_progress_label": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Tier 3"
+			},
+			"role": "content"
+		},
+		"tier4_amount": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Tier 4"
+			},
+			"role": "content"
+		},
+		"tier4_usd": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Tier 4"
+			},
+			"role": "content"
+		},
+		"tier4_desc": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"control": "textarea",
+				"group": "Tier 4"
+			},
+			"role": "content"
+		},
+		"tier4_progress": {
+			"type": "integer",
+			"default": 0,
+			"teda": {
+				"group": "Tier 4"
+			}
+		},
+		"tier4_progress_label": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Tier 4"
+			},
+			"role": "content"
+		},
+		"tier5_amount": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Tier 5"
+			},
+			"role": "content"
+		},
+		"tier5_usd": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Tier 5"
+			},
+			"role": "content"
+		},
+		"tier5_desc": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"control": "textarea",
+				"group": "Tier 5"
+			},
+			"role": "content"
+		},
+		"tier5_progress": {
+			"type": "integer",
+			"default": 0,
+			"teda": {
+				"group": "Tier 5"
+			}
+		},
+		"tier5_progress_label": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Tier 5"
+			},
+			"role": "content"
+		}
 	},
 	"supports": {
 		"html": false,
-		"align": ["wide"]
+		"align": [
+			"wide"
+		]
 	}
 }

@@ -6,39 +6,218 @@
 	"category": "teda",
 	"icon": "slides",
 	"description": "The homepage hero: up to three slides, each with an image, eyebrow, heading, body and up to two calls to action. Slide one loads eagerly; the rest are lazy. No autoplay.",
-	"keywords": ["teda", "hero", "carousel", "slider"],
+	"keywords": [
+		"teda",
+		"hero",
+		"carousel",
+		"slider"
+	],
 	"textdomain": "teda-core",
 	"attributes": {
-		"s1_image": { "type": "integer", "default": 0, "teda": { "control": "media", "group": "Slide 1" } },
-		"s1_eyebrow": { "type": "string", "default": "Youth Led Movement · Teso Sub Region", "teda": { "group": "Slide 1" } },
-		"s1_heading": { "type": "string", "default": "Empowering youth. Preserving culture. Driving change.", "teda": { "group": "Slide 1" } },
-		"s1_body": { "type": "string", "default": "TEDA unites and equips young people to become leaders of education, culture, innovation, and sustainable development across the Teso sub region of Eastern Uganda.", "teda": { "control": "textarea", "group": "Slide 1" } },
-		"s1_cta_label": { "type": "string", "default": "Join TEDA Today", "teda": { "group": "Slide 1" } },
-		"s1_cta_url": { "type": "string", "default": "", "teda": { "control": "url", "group": "Slide 1" } },
-		"s1_cta2_label": { "type": "string", "default": "", "teda": { "group": "Slide 1" } },
-		"s1_cta2_url": { "type": "string", "default": "", "teda": { "control": "url", "group": "Slide 1" } },
-
-		"s2_image": { "type": "integer", "default": 0, "teda": { "control": "media", "group": "Slide 2" } },
-		"s2_eyebrow": { "type": "string", "default": "", "teda": { "group": "Slide 2" } },
-		"s2_heading": { "type": "string", "default": "", "teda": { "group": "Slide 2" } },
-		"s2_body": { "type": "string", "default": "", "teda": { "control": "textarea", "group": "Slide 2" } },
-		"s2_cta_label": { "type": "string", "default": "", "teda": { "group": "Slide 2" } },
-		"s2_cta_url": { "type": "string", "default": "", "teda": { "control": "url", "group": "Slide 2" } },
-		"s2_cta2_label": { "type": "string", "default": "", "teda": { "group": "Slide 2" } },
-		"s2_cta2_url": { "type": "string", "default": "", "teda": { "control": "url", "group": "Slide 2" } },
-
-		"s3_image": { "type": "integer", "default": 0, "teda": { "control": "media", "group": "Slide 3" } },
-		"s3_eyebrow": { "type": "string", "default": "", "teda": { "group": "Slide 3" } },
-		"s3_heading": { "type": "string", "default": "", "teda": { "group": "Slide 3" } },
-		"s3_body": { "type": "string", "default": "", "teda": { "control": "textarea", "group": "Slide 3" } },
-		"s3_cta_label": { "type": "string", "default": "", "teda": { "group": "Slide 3" } },
-		"s3_cta_url": { "type": "string", "default": "", "teda": { "control": "url", "group": "Slide 3" } },
-		"s3_cta2_label": { "type": "string", "default": "", "teda": { "group": "Slide 3" } },
-		"s3_cta2_url": { "type": "string", "default": "", "teda": { "control": "url", "group": "Slide 3" } }
+		"s1_image": {
+			"type": "integer",
+			"default": 0,
+			"teda": {
+				"control": "media",
+				"group": "Slide 1"
+			},
+			"role": "content"
+		},
+		"s1_eyebrow": {
+			"type": "string",
+			"default": "Youth Led Movement · Teso Sub Region",
+			"teda": {
+				"group": "Slide 1"
+			},
+			"role": "content"
+		},
+		"s1_heading": {
+			"type": "string",
+			"default": "Empowering youth. Preserving culture. Driving change.",
+			"teda": {
+				"group": "Slide 1"
+			},
+			"role": "content"
+		},
+		"s1_body": {
+			"type": "string",
+			"default": "TEDA unites and equips young people to become leaders of education, culture, innovation, and sustainable development across the Teso sub region of Eastern Uganda.",
+			"teda": {
+				"control": "textarea",
+				"group": "Slide 1"
+			},
+			"role": "content"
+		},
+		"s1_cta_label": {
+			"type": "string",
+			"default": "Join TEDA Today",
+			"teda": {
+				"group": "Slide 1"
+			},
+			"role": "content"
+		},
+		"s1_cta_url": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"control": "url",
+				"group": "Slide 1"
+			}
+		},
+		"s1_cta2_label": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Slide 1"
+			},
+			"role": "content"
+		},
+		"s1_cta2_url": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"control": "url",
+				"group": "Slide 1"
+			}
+		},
+		"s2_image": {
+			"type": "integer",
+			"default": 0,
+			"teda": {
+				"control": "media",
+				"group": "Slide 2"
+			},
+			"role": "content"
+		},
+		"s2_eyebrow": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Slide 2"
+			},
+			"role": "content"
+		},
+		"s2_heading": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Slide 2"
+			},
+			"role": "content"
+		},
+		"s2_body": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"control": "textarea",
+				"group": "Slide 2"
+			},
+			"role": "content"
+		},
+		"s2_cta_label": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Slide 2"
+			},
+			"role": "content"
+		},
+		"s2_cta_url": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"control": "url",
+				"group": "Slide 2"
+			}
+		},
+		"s2_cta2_label": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Slide 2"
+			},
+			"role": "content"
+		},
+		"s2_cta2_url": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"control": "url",
+				"group": "Slide 2"
+			}
+		},
+		"s3_image": {
+			"type": "integer",
+			"default": 0,
+			"teda": {
+				"control": "media",
+				"group": "Slide 3"
+			},
+			"role": "content"
+		},
+		"s3_eyebrow": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Slide 3"
+			},
+			"role": "content"
+		},
+		"s3_heading": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Slide 3"
+			},
+			"role": "content"
+		},
+		"s3_body": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"control": "textarea",
+				"group": "Slide 3"
+			},
+			"role": "content"
+		},
+		"s3_cta_label": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Slide 3"
+			},
+			"role": "content"
+		},
+		"s3_cta_url": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"control": "url",
+				"group": "Slide 3"
+			}
+		},
+		"s3_cta2_label": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Slide 3"
+			},
+			"role": "content"
+		},
+		"s3_cta2_url": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"control": "url",
+				"group": "Slide 3"
+			}
+		}
 	},
 	"supports": {
 		"html": false,
-		"align": ["full"],
+		"align": [
+			"full"
+		],
 		"anchor": true
 	}
 }

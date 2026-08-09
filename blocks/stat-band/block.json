@@ -6,30 +6,128 @@
 	"category": "teda",
 	"icon": "chart-bar",
 	"description": "Up to four headline figures. Only figures you tick as verified are shown (SPEC §11). If fewer than three are verified, a single honest qualitative statement is shown instead of a thin band.",
-	"keywords": ["teda", "stats", "figures", "impact"],
+	"keywords": [
+		"teda",
+		"stats",
+		"figures",
+		"impact"
+	],
 	"textdomain": "teda-core",
 	"attributes": {
-		"s1_value": { "type": "string", "default": "", "teda": { "group": "Stat 1" } },
-		"s1_label": { "type": "string", "default": "", "teda": { "group": "Stat 1" } },
-		"s1_verified": { "type": "boolean", "default": false, "teda": { "group": "Stat 1" } },
-
-		"s2_value": { "type": "string", "default": "", "teda": { "group": "Stat 2" } },
-		"s2_label": { "type": "string", "default": "", "teda": { "group": "Stat 2" } },
-		"s2_verified": { "type": "boolean", "default": false, "teda": { "group": "Stat 2" } },
-
-		"s3_value": { "type": "string", "default": "", "teda": { "group": "Stat 3" } },
-		"s3_label": { "type": "string", "default": "", "teda": { "group": "Stat 3" } },
-		"s3_verified": { "type": "boolean", "default": false, "teda": { "group": "Stat 3" } },
-
-		"s4_value": { "type": "string", "default": "", "teda": { "group": "Stat 4" } },
-		"s4_label": { "type": "string", "default": "", "teda": { "group": "Stat 4" } },
-		"s4_verified": { "type": "boolean", "default": false, "teda": { "group": "Stat 4" } },
-
-		"as_of": { "type": "string", "default": "", "teda": { "group": "Method note" } },
-		"fallback": { "type": "string", "default": "Working across four districts of Teso", "teda": { "control": "textarea", "group": "Method note" } }
+		"s1_value": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Stat 1"
+			},
+			"role": "content"
+		},
+		"s1_label": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Stat 1"
+			},
+			"role": "content"
+		},
+		"s1_verified": {
+			"type": "boolean",
+			"default": false,
+			"teda": {
+				"group": "Stat 1"
+			}
+		},
+		"s2_value": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Stat 2"
+			},
+			"role": "content"
+		},
+		"s2_label": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Stat 2"
+			},
+			"role": "content"
+		},
+		"s2_verified": {
+			"type": "boolean",
+			"default": false,
+			"teda": {
+				"group": "Stat 2"
+			}
+		},
+		"s3_value": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Stat 3"
+			},
+			"role": "content"
+		},
+		"s3_label": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Stat 3"
+			},
+			"role": "content"
+		},
+		"s3_verified": {
+			"type": "boolean",
+			"default": false,
+			"teda": {
+				"group": "Stat 3"
+			}
+		},
+		"s4_value": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Stat 4"
+			},
+			"role": "content"
+		},
+		"s4_label": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Stat 4"
+			},
+			"role": "content"
+		},
+		"s4_verified": {
+			"type": "boolean",
+			"default": false,
+			"teda": {
+				"group": "Stat 4"
+			}
+		},
+		"as_of": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Method note"
+			},
+			"role": "content"
+		},
+		"fallback": {
+			"type": "string",
+			"default": "Working across four districts of Teso",
+			"teda": {
+				"control": "textarea",
+				"group": "Method note"
+			},
+			"role": "content"
+		}
 	},
 	"supports": {
 		"html": false,
-		"align": ["full"]
+		"align": [
+			"full"
+		]
 	}
 }

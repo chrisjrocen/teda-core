@@ -6,39 +6,182 @@
 	"category": "teda",
 	"icon": "format-quote",
 	"description": "A carousel of member voices. Use a first name and district only — never a full name. Keyboard-operable, no autoplay.",
-	"keywords": ["teda", "testimonials", "quotes", "voices"],
+	"keywords": [
+		"teda",
+		"testimonials",
+		"quotes",
+		"voices"
+	],
 	"textdomain": "teda-core",
 	"attributes": {
-		"eyebrow": { "type": "string", "default": "Voices" },
-		"heading": { "type": "string", "default": "What members say" },
-		"show_header": { "type": "boolean", "default": true },
-
-		"t1_quote": { "type": "string", "default": "", "teda": { "control": "textarea", "group": "Testimonial 1" } },
-		"t1_name": { "type": "string", "default": "", "teda": { "group": "Testimonial 1" } },
-		"t1_district": { "type": "string", "default": "", "teda": { "group": "Testimonial 1" } },
-
-		"t2_quote": { "type": "string", "default": "", "teda": { "control": "textarea", "group": "Testimonial 2" } },
-		"t2_name": { "type": "string", "default": "", "teda": { "group": "Testimonial 2" } },
-		"t2_district": { "type": "string", "default": "", "teda": { "group": "Testimonial 2" } },
-
-		"t3_quote": { "type": "string", "default": "", "teda": { "control": "textarea", "group": "Testimonial 3" } },
-		"t3_name": { "type": "string", "default": "", "teda": { "group": "Testimonial 3" } },
-		"t3_district": { "type": "string", "default": "", "teda": { "group": "Testimonial 3" } },
-
-		"t4_quote": { "type": "string", "default": "", "teda": { "control": "textarea", "group": "Testimonial 4" } },
-		"t4_name": { "type": "string", "default": "", "teda": { "group": "Testimonial 4" } },
-		"t4_district": { "type": "string", "default": "", "teda": { "group": "Testimonial 4" } },
-
-		"t5_quote": { "type": "string", "default": "", "teda": { "control": "textarea", "group": "Testimonial 5" } },
-		"t5_name": { "type": "string", "default": "", "teda": { "group": "Testimonial 5" } },
-		"t5_district": { "type": "string", "default": "", "teda": { "group": "Testimonial 5" } },
-
-		"t6_quote": { "type": "string", "default": "", "teda": { "control": "textarea", "group": "Testimonial 6" } },
-		"t6_name": { "type": "string", "default": "", "teda": { "group": "Testimonial 6" } },
-		"t6_district": { "type": "string", "default": "", "teda": { "group": "Testimonial 6" } }
+		"eyebrow": {
+			"type": "string",
+			"default": "Voices"
+		},
+		"heading": {
+			"type": "string",
+			"default": "What members say"
+		},
+		"show_header": {
+			"type": "boolean",
+			"default": true
+		},
+		"t1_quote": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"control": "textarea",
+				"group": "Testimonial 1"
+			},
+			"role": "content"
+		},
+		"t1_name": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Testimonial 1"
+			},
+			"role": "content"
+		},
+		"t1_district": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Testimonial 1"
+			},
+			"role": "content"
+		},
+		"t2_quote": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"control": "textarea",
+				"group": "Testimonial 2"
+			},
+			"role": "content"
+		},
+		"t2_name": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Testimonial 2"
+			},
+			"role": "content"
+		},
+		"t2_district": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Testimonial 2"
+			},
+			"role": "content"
+		},
+		"t3_quote": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"control": "textarea",
+				"group": "Testimonial 3"
+			},
+			"role": "content"
+		},
+		"t3_name": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Testimonial 3"
+			},
+			"role": "content"
+		},
+		"t3_district": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Testimonial 3"
+			},
+			"role": "content"
+		},
+		"t4_quote": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"control": "textarea",
+				"group": "Testimonial 4"
+			},
+			"role": "content"
+		},
+		"t4_name": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Testimonial 4"
+			},
+			"role": "content"
+		},
+		"t4_district": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Testimonial 4"
+			},
+			"role": "content"
+		},
+		"t5_quote": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"control": "textarea",
+				"group": "Testimonial 5"
+			},
+			"role": "content"
+		},
+		"t5_name": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Testimonial 5"
+			},
+			"role": "content"
+		},
+		"t5_district": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Testimonial 5"
+			},
+			"role": "content"
+		},
+		"t6_quote": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"control": "textarea",
+				"group": "Testimonial 6"
+			},
+			"role": "content"
+		},
+		"t6_name": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Testimonial 6"
+			},
+			"role": "content"
+		},
+		"t6_district": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Testimonial 6"
+			},
+			"role": "content"
+		}
 	},
 	"supports": {
 		"html": false,
-		"align": ["wide", "full"]
+		"align": [
+			"wide",
+			"full"
+		]
 	}
 }

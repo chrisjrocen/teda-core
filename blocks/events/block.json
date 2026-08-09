@@ -6,21 +6,63 @@
 	"category": "teda",
 	"icon": "calendar-alt",
 	"description": "Upcoming events, soonest first. When nothing is upcoming it shows featured past events instead of a gap; with no events at all it shows a designed empty state with the channel link.",
-	"keywords": ["teda", "events", "calendar"],
+	"keywords": [
+		"teda",
+		"events",
+		"calendar"
+	],
 	"textdomain": "teda-core",
 	"attributes": {
-		"eyebrow": { "type": "string", "default": "What’s Happening" },
-		"heading": { "type": "string", "default": "Upcoming events" },
-		"show_header": { "type": "boolean", "default": true },
-		"count": { "type": "integer", "default": 3 },
-		"event_type": { "type": "string", "default": "" },
-		"filter_group": { "type": "string", "default": "" },
-		"channel_label": { "type": "string", "default": "WhatsApp" },
-		"channel_url": { "type": "string", "default": "", "teda": { "control": "url" } },
-		"past_url": { "type": "string", "default": "", "teda": { "control": "url" } }
+		"eyebrow": {
+			"type": "string",
+			"default": "What’s Happening",
+			"role": "content"
+		},
+		"heading": {
+			"type": "string",
+			"default": "Upcoming events",
+			"role": "content"
+		},
+		"show_header": {
+			"type": "boolean",
+			"default": true
+		},
+		"count": {
+			"type": "integer",
+			"default": 3
+		},
+		"event_type": {
+			"type": "string",
+			"default": ""
+		},
+		"filter_group": {
+			"type": "string",
+			"default": ""
+		},
+		"channel_label": {
+			"type": "string",
+			"default": "WhatsApp"
+		},
+		"channel_url": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"control": "url"
+			}
+		},
+		"past_url": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"control": "url"
+			}
+		}
 	},
 	"supports": {
 		"html": false,
-		"align": ["wide", "full"]
+		"align": [
+			"wide",
+			"full"
+		]
 	}
 }
