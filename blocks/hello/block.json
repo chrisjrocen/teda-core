@@ -1,0 +1,21 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "teda/hello",
+	"title": "TEDA Hello",
+	"category": "teda",
+	"icon": "smiley",
+	"description": "Foundation smoke-test block. Proves registration, the TEDA category, ServerSideRender preview and auto InspectorControls. Not for production pages.",
+	"keywords": ["teda", "test"],
+	"textdomain": "teda-core",
+	"attributes": {
+		"name": {
+			"type": "string",
+			"default": "Teso"
+		}
+	},
+	"supports": {
+		"html": false,
+		"align": ["wide", "full"]
+	}
+}
