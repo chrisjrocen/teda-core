@@ -57,3 +57,17 @@ if ( ! function_exists( 'teda_field_list' ) ) {
 		return Accessor::get_list( $key, $post_id );
 	}
 }
+
+if ( ! function_exists( 'teda_event_registration_form' ) ) {
+	/**
+	 * The registration area for an event page (P13): capacity line + the Fluent
+	 * Forms registration form, or a waitlist CTA once the event is full. Returns ''
+	 * when Fluent Forms is unavailable, so the theme can fall back to its own
+	 * external-link button. Keeps Fluent Forms coupling inside teda-core.
+	 *
+	 * @param int $event_id Event post id.
+	 */
+	function teda_event_registration_form( int $event_id ): string {
+		return \Teda_Core\Forms\Event_Registration::render( $event_id );
+	}
+}

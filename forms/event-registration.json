@@ -1,0 +1,17 @@
+{
+	"slug": "event-registration",
+	"title": "Event registration",
+	"confirmation": "You are registered. We will send any details to your phone or email. To cancel or be removed, email tedayouthteso@gmail.com.",
+	"notify": {
+		"to": "tedayouthteso@gmail.com",
+		"subject": "Event registration: {inputs.names}"
+	},
+	"fields": [
+		{ "type": "text", "name": "names", "label": "Full name", "required": true, "placeholder": "Your name" },
+		{ "type": "tel", "name": "phone", "label": "Phone", "required": true, "placeholder": "e.g. 07XX XXX XXX" },
+		{ "type": "email", "name": "email", "label": "Email", "required": false, "placeholder": "Optional" },
+		{ "type": "select", "name": "district", "label": "District", "required": true, "options": ["Soroti", "Kumi", "Katakwi", "Amuria", "Bukedea", "Ngora", "Serere", "Kaberamaido", "Kapelebyong", "Kalaki", "Other / outside Teso"] },
+		{ "type": "text", "name": "organization", "label": "Organization (optional)", "required": false, "placeholder": "If you represent one" },
+		{ "type": "consent", "name": "consent", "required": true }
+	]
+}

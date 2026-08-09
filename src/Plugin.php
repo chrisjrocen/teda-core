@@ -40,6 +40,7 @@ final class Plugin {
 		Taxonomies\Registry::class,
 		Fields\Registry::class,
 		Blocks\Registry::class,
+		Forms\Registry::class,
 		// P14: Teda_Core\Cron\Scheduler::class,
 		// P16: Teda_Core\Redirects\Map::class,
 		Support\Env::class,

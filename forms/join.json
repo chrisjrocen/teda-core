@@ -1,0 +1,19 @@
+{
+	"slug": "join",
+	"title": "Join TEDA",
+	"confirmation": "Thank you for joining TEDA. A member of the team will be in touch on WhatsApp or email. You can ask to be removed at any time by emailing tedayouthteso@gmail.com.",
+	"notify": {
+		"to": "tedayouthteso@gmail.com",
+		"subject": "New TEDA membership: {inputs.names}"
+	},
+	"fields": [
+		{ "type": "text", "name": "names", "label": "Full name", "required": true, "placeholder": "Your name" },
+		{ "type": "tel", "name": "phone", "label": "Phone (WhatsApp)", "required": true, "placeholder": "e.g. 07XX XXX XXX", "help": "We contact new members on WhatsApp." },
+		{ "type": "email", "name": "email", "label": "Email", "required": false, "placeholder": "Optional" },
+		{ "type": "select", "name": "district", "label": "District", "required": true, "options": ["Soroti", "Kumi", "Katakwi", "Amuria", "Bukedea", "Ngora", "Serere", "Kaberamaido", "Kapelebyong", "Kalaki", "Other / outside Teso"] },
+		{ "type": "radio", "name": "age_bracket", "label": "Age bracket", "required": true, "help": "We ask for a bracket, never your date of birth.", "options": ["Under 18", "18–24", "25–30", "31–35", "Over 35"] },
+		{ "type": "checkbox", "name": "interests", "label": "Areas of interest", "required": false, "options": ["Education", "Climate", "Health", "Entrepreneurship", "Leadership", "Culture"] },
+		{ "type": "select", "name": "referral", "label": "How did you hear about us?", "required": false, "options": ["A friend or family member", "Social media", "WhatsApp", "A community event", "Other"] },
+		{ "type": "consent", "name": "consent", "required": true }
+	]
+}
