@@ -1,0 +1,11 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# No build step for blocks (D4): block.json + PHP render_callback only.
+node_modules/
+vendor/
+composer.lock
