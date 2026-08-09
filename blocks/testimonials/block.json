@@ -1,0 +1,44 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "teda/testimonials",
+	"title": "TEDA Testimonials",
+	"category": "teda",
+	"icon": "format-quote",
+	"description": "A carousel of member voices. Use a first name and district only — never a full name. Keyboard-operable, no autoplay.",
+	"keywords": ["teda", "testimonials", "quotes", "voices"],
+	"textdomain": "teda-core",
+	"attributes": {
+		"eyebrow": { "type": "string", "default": "Voices" },
+		"heading": { "type": "string", "default": "What members say" },
+		"show_header": { "type": "boolean", "default": true },
+
+		"t1_quote": { "type": "string", "default": "", "teda": { "control": "textarea", "group": "Testimonial 1" } },
+		"t1_name": { "type": "string", "default": "", "teda": { "group": "Testimonial 1" } },
+		"t1_district": { "type": "string", "default": "", "teda": { "group": "Testimonial 1" } },
+
+		"t2_quote": { "type": "string", "default": "", "teda": { "control": "textarea", "group": "Testimonial 2" } },
+		"t2_name": { "type": "string", "default": "", "teda": { "group": "Testimonial 2" } },
+		"t2_district": { "type": "string", "default": "", "teda": { "group": "Testimonial 2" } },
+
+		"t3_quote": { "type": "string", "default": "", "teda": { "control": "textarea", "group": "Testimonial 3" } },
+		"t3_name": { "type": "string", "default": "", "teda": { "group": "Testimonial 3" } },
+		"t3_district": { "type": "string", "default": "", "teda": { "group": "Testimonial 3" } },
+
+		"t4_quote": { "type": "string", "default": "", "teda": { "control": "textarea", "group": "Testimonial 4" } },
+		"t4_name": { "type": "string", "default": "", "teda": { "group": "Testimonial 4" } },
+		"t4_district": { "type": "string", "default": "", "teda": { "group": "Testimonial 4" } },
+
+		"t5_quote": { "type": "string", "default": "", "teda": { "control": "textarea", "group": "Testimonial 5" } },
+		"t5_name": { "type": "string", "default": "", "teda": { "group": "Testimonial 5" } },
+		"t5_district": { "type": "string", "default": "", "teda": { "group": "Testimonial 5" } },
+
+		"t6_quote": { "type": "string", "default": "", "teda": { "control": "textarea", "group": "Testimonial 6" } },
+		"t6_name": { "type": "string", "default": "", "teda": { "group": "Testimonial 6" } },
+		"t6_district": { "type": "string", "default": "", "teda": { "group": "Testimonial 6" } }
+	},
+	"supports": {
+		"html": false,
+		"align": ["wide", "full"]
+	}
+}

@@ -1,0 +1,24 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "teda/news",
+	"title": "TEDA News",
+	"category": "teda",
+	"icon": "megaphone",
+	"description": "Latest news, three across. Optional category filter and a last-updated date. When the verified gate is on, unverified posts are hidden.",
+	"keywords": ["teda", "news", "posts", "updates"],
+	"textdomain": "teda-core",
+	"attributes": {
+		"eyebrow": { "type": "string", "default": "Latest" },
+		"heading": { "type": "string", "default": "News & updates" },
+		"show_header": { "type": "boolean", "default": true },
+		"count": { "type": "integer", "default": 3 },
+		"category": { "type": "string", "default": "" },
+		"filter_group": { "type": "string", "default": "" },
+		"show_updated": { "type": "boolean", "default": true }
+	},
+	"supports": {
+		"html": false,
+		"align": ["wide", "full"]
+	}
+}

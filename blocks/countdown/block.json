@@ -1,0 +1,20 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "teda/countdown",
+	"title": "TEDA Countdown",
+	"category": "teda",
+	"icon": "clock",
+	"description": "Counts down to an event and flips to a post-event message automatically at its end time. Both states are rendered on the server; JavaScript only ticks the numbers, so it is correct with a page cache and with JavaScript off.",
+	"keywords": ["teda", "countdown", "event"],
+	"textdomain": "teda-core",
+	"attributes": {
+		"event_id": { "type": "integer", "default": 0 },
+		"recap_url": { "type": "string", "default": "", "teda": { "control": "url" } },
+		"recap_label": { "type": "string", "default": "See the highlights" }
+	},
+	"supports": {
+		"html": false,
+		"align": ["wide", "full"]
+	}
+}

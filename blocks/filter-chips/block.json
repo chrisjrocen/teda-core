@@ -1,0 +1,21 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "teda/filter-chips",
+	"title": "TEDA Filter Chips",
+	"category": "teda",
+	"icon": "filter",
+	"description": "A reusable filter control. Pick a taxonomy and give it the same group key as the list block below it. Chips filter the list in the browser, track aria-pressed, and reveal an empty state when a filter matches nothing.",
+	"keywords": ["teda", "filter", "chips", "taxonomy"],
+	"textdomain": "teda-core",
+	"attributes": {
+		"taxonomy": { "type": "string", "default": "event_type" },
+		"group_key": { "type": "string", "default": "" },
+		"label": { "type": "string", "default": "Filter" },
+		"all_label": { "type": "string", "default": "All" }
+	},
+	"supports": {
+		"html": false,
+		"align": ["wide"]
+	}
+}

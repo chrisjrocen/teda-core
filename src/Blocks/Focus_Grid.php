@@ -116,7 +116,7 @@ final class Focus_Grid extends Block_Renderer {
 	 */
 	private function focus_areas( array $attributes ): array {
 		$count = $this->int_attr( $attributes, 'count', 6, 1, Query::MAX );
-		$key   = (string) $count;
+		$key   = $count . '|' . wp_cache_get_last_changed( 'posts' );
 		if ( isset( $this->cache[ $key ] ) ) {
 			return $this->cache[ $key ];
 		}
