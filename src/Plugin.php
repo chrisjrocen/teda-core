@@ -45,6 +45,7 @@ final class Plugin {
 		// P16: Teda_Core\Redirects\Map::class,
 		Support\Env::class,
 		Admin\Notices::class,
+		Admin\Verification::class,
 	);
 
 	/**
