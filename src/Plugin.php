@@ -41,6 +41,7 @@ final class Plugin {
 		Fields\Registry::class,
 		Blocks\Registry::class,
 		Forms\Registry::class,
+		Spaces\Presenter::class,
 		Cron\Scheduler::class,
 		Redirects\Map::class,
 		Seo\Config::class,

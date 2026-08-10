@@ -1,0 +1,44 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "teda/spaces",
+	"title": "TEDA Spaces",
+	"category": "teda",
+	"icon": "microphone",
+	"description": "Recent X Spaces, newest first, each with its summary — never an empty 'Loading Spaces…'. With no Spaces published it shows a designed empty state inviting people to follow on X.",
+	"keywords": [
+		"teda",
+		"spaces",
+		"audio",
+		"twitter",
+		"x"
+	],
+	"textdomain": "teda-core",
+	"attributes": {
+		"eyebrow": {
+			"type": "string",
+			"default": "In conversation",
+			"role": "content"
+		},
+		"heading": {
+			"type": "string",
+			"default": "TEDA Spaces",
+			"role": "content"
+		},
+		"show_header": {
+			"type": "boolean",
+			"default": true
+		},
+		"count": {
+			"type": "integer",
+			"default": 3
+		}
+	},
+	"supports": {
+		"html": false,
+		"align": [
+			"wide",
+			"full"
+		]
+	}
+}

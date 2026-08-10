@@ -76,6 +76,14 @@ final class Space {
 					'desc'         => __( 'A short write-up of the Space, so people (and search engines) can read it without listening.', 'teda-core' ),
 				),
 				array(
+					'name'         => __( 'What TEDA is doing about it', 'teda-core' ),
+					'id'           => 'teda_space_action',
+					'type'         => 'textarea',
+					'rows'         => 3,
+					'show_in_rest' => true,
+					'desc'         => __( 'Optional. The action TEDA is taking on the issues raised — this turns a conversation into accountability. Shows on the page even if the X embed does not load.', 'teda-core' ),
+				),
+				array(
 					'name'         => __( 'Audio recording (fallback)', 'teda-core' ),
 					'id'           => 'teda_audio_file',
 					'type'         => 'file_input',
