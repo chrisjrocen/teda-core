@@ -38,10 +38,107 @@ final class Config implements Bootable {
 		add_action( 'wp_head', array( $this, 'emit_event_head' ), 9 );
 		add_filter( 'rank_math/json_ld', array( $this, 'event_json_ld' ), 20, 2 );
 
-		// Canonical fallback only when Rank Math is not producing one.
+		// Meta description: guarantee one everywhere (SEO). Feed Rank Math a
+		// sensible fallback for its own tag, AND self-emit — because Rank Math omits
+		// the tag entirely on the front page when no homepage description is set,
+		// which is exactly the case that docks the SEO score. The self-emitter skips
+		// any view that already has a manual Rank Math description, so no duplicate.
+		add_filter( 'rank_math/frontend/description', array( $this, 'ensure_description' ) );
+		add_action( 'wp_head', array( $this, 'fallback_description_head' ), 2 );
 		if ( ! $this->rank_math_active() ) {
 			add_action( 'wp_head', array( $this, 'fallback_canonical_head' ), 1 );
 		}
+	}
+
+	/**
+	 * True when the current view has a manually-set Rank Math description, so we must
+	 * not add a second one.
+	 */
+	private function has_manual_description(): bool {
+		if ( is_front_page() ) {
+			$home = function_exists( 'RankMath\\Helper::get_settings' ) ? '' : '';
+			if ( class_exists( '\RankMath\Helper' ) ) {
+				$home = (string) \RankMath\Helper::get_settings( 'titles.homepage_description', '' );
+			}
+			if ( '' !== trim( (string) $home ) ) {
+				return true;
+			}
+		}
+		if ( is_singular() ) {
+			$post = get_post();
+			if ( $post instanceof \WP_Post ) {
+				$meta = (string) get_post_meta( $post->ID, 'rank_math_description', true );
+				if ( '' !== trim( $meta ) ) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * A meta description for the current view, used as a fallback when none is set
+	 * (the homepage had none, docking SEO). Singular → excerpt/trimmed content;
+	 * front page and archives → the site tagline, then site name.
+	 */
+	public function description_for_view(): string {
+		// Front page: the tagline is a better summary than the first block of copy.
+		if ( is_front_page() ) {
+			$tagline = trim( (string) get_bloginfo( 'description' ) );
+			return '' !== $tagline ? $tagline : (string) get_bloginfo( 'name' );
+		}
+		if ( is_singular() ) {
+			$post = get_post();
+			if ( $post instanceof \WP_Post ) {
+				$excerpt = has_excerpt( $post ) ? get_the_excerpt( $post ) : wp_strip_all_tags( (string) $post->post_content );
+				$excerpt = trim( preg_replace( '/\s+/', ' ', (string) $excerpt ) ?? '' );
+				if ( '' !== $excerpt ) {
+					return $this->trim_words( $excerpt, 30 );
+				}
+			}
+		}
+
+		$tagline = trim( (string) get_bloginfo( 'description' ) );
+		if ( '' !== $tagline ) {
+			return $tagline;
+		}
+
+		return (string) get_bloginfo( 'name' );
+	}
+
+	/**
+	 * Rank Math description filter: only steps in when RM produced nothing.
+	 *
+	 * @param string $description Rank Math's description (possibly empty).
+	 */
+	public function ensure_description( $description ): string {
+		$description = is_string( $description ) ? trim( $description ) : '';
+		return '' !== $description ? $description : $this->description_for_view();
+	}
+
+	/**
+	 * Self-emit the meta description, except where a manual Rank Math description
+	 * already covers the view (avoids a duplicate tag).
+	 */
+	public function fallback_description_head(): void {
+		if ( is_404() || $this->has_manual_description() ) {
+			return;
+		}
+		$desc = $this->description_for_view();
+		if ( '' !== $desc ) {
+			echo '<meta name="description" content="' . esc_attr( $desc ) . '" />' . "\n";
+		}
+	}
+
+	/**
+	 * Trim a string to at most $words words, adding an ellipsis when cut.
+	 */
+	private function trim_words( string $text, int $words ): string {
+		$parts = preg_split( '/\s+/', $text ) ?: array();
+		if ( count( $parts ) <= $words ) {
+			return $text;
+		}
+		return implode( ' ', array_slice( $parts, 0, $words ) ) . '…';
 	}
 
 	/* --------------------------------------------------------------------- */

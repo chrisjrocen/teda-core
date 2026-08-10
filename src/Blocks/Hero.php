@@ -109,6 +109,10 @@ final class Hero extends Block_Renderer {
 			'class'    => 'teda-hero__bg',
 			'decoding' => 'async',
 			'loading'  => $first ? 'eager' : 'lazy',
+			// The hero is a full-bleed background behind a dark scrim, so it does not
+			// need a pixel-perfect image at high DPR. Bias the responsive pick towards
+			// a lighter breakpoint (P17, metered-data audience / LCP budget).
+			'sizes'    => '(max-width: 782px) 75vw, 100vw',
 		);
 		if ( $first ) {
 			$attr['fetchpriority'] = 'high';
