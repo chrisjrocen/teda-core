@@ -30,6 +30,19 @@ define( 'TEDA_CORE_PATH', plugin_dir_path( __FILE__ ) );
 define( 'TEDA_CORE_URL', plugin_dir_url( __FILE__ ) );
 
 /**
+ * The canonical production host (SPEC §4.1, P16). Every canonical URL and Open
+ * Graph tag points here, regardless of the host WordPress currently runs on, so
+ * search engines are never told about localhost or a staging domain.
+ *
+ * ⚠ Blocker B1: `tedauganda.org` is NOT registered yet. This is the ONE edit for
+ * cutover — change it here (and see docs/CUTOVER.md) once the domain resolves.
+ * Set to '' to fall back to WordPress's own home URL (useful on staging).
+ */
+if ( ! defined( 'TEDA_CANONICAL_HOST' ) ) {
+	define( 'TEDA_CANONICAL_HOST', 'https://tedauganda.org' );
+}
+
+/**
  * Minimum runtime. If unmet we never boot — we self-deactivate with an
  * explanatory notice instead of fataling (house rule 13, P01 task 7).
  */
