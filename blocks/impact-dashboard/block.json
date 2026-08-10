@@ -1,0 +1,64 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "teda/impact-dashboard",
+	"title": "TEDA Impact Dashboard",
+	"category": "teda",
+	"icon": "chart-bar",
+	"description": "Funder-facing headline figures. Only figures ticked 'verified' render, and each one links to the published document it comes from (D13). With too few verified figures it shows an honest fallback, never an unbacked number.",
+	"keywords": [
+		"teda",
+		"impact",
+		"figures",
+		"accountability",
+		"funder"
+	],
+	"textdomain": "teda-core",
+	"attributes": {
+		"eyebrow": { "type": "string", "default": "Our impact", "role": "content" },
+		"heading": { "type": "string", "default": "The numbers, and where they come from", "role": "content" },
+		"intro": { "type": "string", "default": "Every figure below is drawn from a published TEDA document. Follow any number to its source.", "role": "content" },
+		"fallback": { "type": "string", "default": "We publish figures here only once they can be traced to a released report. Our verified impact figures will appear as those reports are published.", "role": "content" },
+		"min_to_render": { "type": "integer", "default": 1 },
+
+		"f1_value": { "type": "string", "default": "", "role": "content" },
+		"f1_label": { "type": "string", "default": "", "role": "content" },
+		"f1_verified": { "type": "boolean", "default": false },
+		"f1_source": { "type": "string", "default": "", "teda": { "control": "url" } },
+		"f1_source_label": { "type": "string", "default": "", "role": "content" },
+
+		"f2_value": { "type": "string", "default": "", "role": "content" },
+		"f2_label": { "type": "string", "default": "", "role": "content" },
+		"f2_verified": { "type": "boolean", "default": false },
+		"f2_source": { "type": "string", "default": "", "teda": { "control": "url" } },
+		"f2_source_label": { "type": "string", "default": "", "role": "content" },
+
+		"f3_value": { "type": "string", "default": "", "role": "content" },
+		"f3_label": { "type": "string", "default": "", "role": "content" },
+		"f3_verified": { "type": "boolean", "default": false },
+		"f3_source": { "type": "string", "default": "", "teda": { "control": "url" } },
+		"f3_source_label": { "type": "string", "default": "", "role": "content" },
+
+		"f4_value": { "type": "string", "default": "", "role": "content" },
+		"f4_label": { "type": "string", "default": "", "role": "content" },
+		"f4_verified": { "type": "boolean", "default": false },
+		"f4_source": { "type": "string", "default": "", "teda": { "control": "url" } },
+		"f4_source_label": { "type": "string", "default": "", "role": "content" },
+
+		"f5_value": { "type": "string", "default": "", "role": "content" },
+		"f5_label": { "type": "string", "default": "", "role": "content" },
+		"f5_verified": { "type": "boolean", "default": false },
+		"f5_source": { "type": "string", "default": "", "teda": { "control": "url" } },
+		"f5_source_label": { "type": "string", "default": "", "role": "content" },
+
+		"f6_value": { "type": "string", "default": "", "role": "content" },
+		"f6_label": { "type": "string", "default": "", "role": "content" },
+		"f6_verified": { "type": "boolean", "default": false },
+		"f6_source": { "type": "string", "default": "", "teda": { "control": "url" } },
+		"f6_source_label": { "type": "string", "default": "", "role": "content" }
+	},
+	"supports": {
+		"html": false,
+		"align": [ "wide", "full" ]
+	}
+}

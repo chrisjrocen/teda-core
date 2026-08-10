@@ -105,6 +105,17 @@ final class Empty_State {
 				);
 				break;
 
+			case 'publications':
+				$config = array(
+					'heading' => __( 'Our reports are on the way', 'teda-core' ),
+					'text'    => __( 'TEDA publishes what it does and what it spends. The first documents will appear here as they are released.', 'teda-core' ),
+					'actions' => array(
+						array( 'label' => __( 'About TEDA', 'teda-core' ), 'url' => home_url( '/about/' ), 'primary' => true ),
+						array( 'label' => __( 'Ask us a question', 'teda-core' ), 'url' => home_url( '/contact/' ) ),
+					),
+				);
+				break;
+
 			case 'gallery':
 				$config = array(
 					'heading' => __( 'Our gallery is coming soon', 'teda-core' ),
