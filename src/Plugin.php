@@ -47,6 +47,7 @@ final class Plugin {
 		Support\Env::class,
 		Admin\Notices::class,
 		Admin\Verification::class,
+		Admin\Roles::class,
 	);
 
 	/**
