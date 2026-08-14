@@ -17,6 +17,9 @@ use WP_Block;
  * statement ("Working across four districts of Teso") rather than showing a thin,
  * lopsided band. When any figure shows, the method note is appended. Numbers use a
  * tabular display face (teda-child CSS).
+ *
+ * Each numeric value carries data-teda-stat-count + data-teda-stat-suffix
+ * attributes so the child theme's JS can animate the figure upward from zero.
  */
 final class Stat_Band extends Block_Renderer {
 
@@ -36,8 +39,23 @@ final class Stat_Band extends Block_Renderer {
 
 		$cells = '';
 		foreach ( $stats as $stat ) {
+			$value = $stat['value'];
+			// Parse "500+" → count=500, suffix="+" so JS can animate the number
+			// and re-append the suffix. Non-numeric values get no data attrs and
+			// render statically.
+			$count = $this->stat_count( $value );
+			$suffix = $this->stat_suffix( $value );
+
+			$attrs = '';
+			if ( null !== $count ) {
+				$attrs = ' data-teda-stat-count="' . esc_attr( (string) $count ) . '"';
+				if ( '' !== $suffix ) {
+					$attrs .= ' data-teda-stat-suffix="' . esc_attr( $suffix ) . '"';
+				}
+			}
+
 			$cells .= '<div class="teda-stat">'
-				. '<b class="teda-display teda-stat__value">' . esc_html( $stat['value'] ) . '</b>'
+				. '<b class="teda-display teda-stat__value"' . $attrs . '>' . esc_html( $value ) . '</b>'
 				. '<span class="teda-stat__label">' . esc_html( $stat['label'] ) . '</span>'
 				. '</div>';
 		}
@@ -107,5 +125,32 @@ final class Stat_Band extends Block_Renderer {
 		}
 
 		return $stats;
+	}
+
+	/**
+	 * Extract the numeric portion of a stat value (e.g. "500+" → 500),
+	 * stripping commas. Returns null when the value has no leading digits
+	 * (e.g. "N/A"), in which case the stat renders statically.
+	 *
+	 * @param string $value The raw stat value from attributes.
+	 */
+	private function stat_count( string $value ): ?int {
+		if ( preg_match( '/^([\d,]+)/', $value, $m ) ) {
+			return (int) str_replace( ',', '', $m[1] );
+		}
+		return null;
+	}
+
+	/**
+	 * The non-numeric suffix of a stat value (e.g. "500+" → "+").
+	 * Returns '' when there is no suffix or no numeric prefix.
+	 *
+	 * @param string $value The raw stat value from attributes.
+	 */
+	private function stat_suffix( string $value ): string {
+		if ( preg_match( '/^\d[\d,]*(.*)$/', $value, $m ) ) {
+			return $m[1];
+		}
+		return '';
 	}
 }

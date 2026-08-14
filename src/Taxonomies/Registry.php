@@ -24,6 +24,7 @@ final class Registry implements Bootable {
 		Space_Topic::class,
 		Pub_Type::class,
 		Gallery_Album::class,
+		Focus_Area_Pub::class,
 	);
 
 	public function register(): void {

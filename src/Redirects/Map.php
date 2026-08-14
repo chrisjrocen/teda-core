@@ -48,7 +48,7 @@ final class Map implements Bootable {
 			'/apply.html'          => '/get-involved/opportunities/',
 			'/get-involved.html'   => '/get-involved/volunteer/',
 			'/events.html'         => '/events/',
-			'/youth-forum.html'    => '/events/',
+			'/youth-forum.html'    => '/teso-youth-forum/',
 			'/news.html'           => '/news/',
 			'/gallery.html'        => '/gallery/',
 			'/donate.html'         => '/donate/',

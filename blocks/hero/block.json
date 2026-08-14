@@ -5,7 +5,7 @@
 	"title": "TEDA Hero",
 	"category": "teda",
 	"icon": "slides",
-	"description": "The homepage hero: up to three slides, each with an image, eyebrow, heading, body and up to two calls to action. Slide one loads eagerly; the rest are lazy. No autoplay.",
+	"description": "The homepage hero: up to three slides, each with an image, eyebrow, heading, body and up to two calls to action. Slide one loads eagerly; the rest are lazy. Autoplay at 5s with pause-on-hover/focus; disabled when prefers-reduced-motion is set.",
 	"keywords": [
 		"teda",
 		"hero",

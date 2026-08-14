@@ -83,10 +83,14 @@ final class Focus_Grid extends Block_Renderer {
 
 	/**
 	 * One focus-area card.
+	 *
+	 * The card shows a featured image when the editor has set one; when none is
+	 * set it falls back to the SVG icon chosen in the teda_icon field, so the
+	 * card never renders without a pictorial element (SPEC §3.1: an icon and a
+	 * label always accompany colour).
 	 */
 	private function card( WP_Post $post ): string {
 		$accent  = $this->accent( (string) teda_field( 'teda_accent_color', $post->ID, 'brown' ) );
-		$icon    = Icons::focus( (string) teda_field( 'teda_icon', $post->ID, '' ) );
 		$summary = (string) teda_field( 'teda_summary', $post->ID, '' );
 		if ( '' === $summary ) {
 			$summary = wp_strip_all_tags( get_the_excerpt( $post ) );
@@ -94,9 +98,19 @@ final class Focus_Grid extends Block_Renderer {
 
 		$out = '<a class="teda-focus-card teda-focus-card--' . $accent . '" href="' . esc_url( (string) get_permalink( $post ) ) . '">';
 		$out .= '<span class="teda-focus-card__bar" aria-hidden="true"></span>';
-		if ( '' !== $icon ) {
-			$out .= '<span class="teda-focus-card__icon">' . $icon . '</span>';
+
+		// Featured image replaces the SVG icon when set; fall back to the
+		// SVG icon (or nothing) when no image is attached.
+		$image = $this->card_image( $post );
+		if ( '' !== $image ) {
+			$out .= '<span class="teda-focus-card__icon teda-focus-card__icon--image">' . $image . '</span>';
+		} else {
+			$icon = Icons::focus( (string) teda_field( 'teda_icon', $post->ID, '' ) );
+			if ( '' !== $icon ) {
+				$out .= '<span class="teda-focus-card__icon">' . $icon . '</span>';
+			}
 		}
+
 		$out .= '<h3 class="teda-focus-card__title">' . esc_html( get_the_title( $post ) ) . '</h3>';
 		if ( '' !== $summary ) {
 			$out .= '<p class="teda-focus-card__summary">' . esc_html( $summary ) . '</p>';
@@ -105,6 +119,32 @@ final class Focus_Grid extends Block_Renderer {
 		$out .= '</a>';
 
 		return $out;
+	}
+
+	/**
+	 * The focus area's featured image, sized for the full-width card banner
+	 * (140px tall, ~2.4:1) with a 2× fallback for high-DPI screens. Returns ''
+	 * when no image is set — the caller then renders the SVG icon instead.
+	 *
+	 * @param WP_Post $post The focus area post.
+	 */
+	private function card_image( WP_Post $post ): string {
+		if ( ! has_post_thumbnail( $post->ID ) ) {
+			return '';
+		}
+
+		$img = wp_get_attachment_image(
+			(int) get_post_thumbnail_id( $post->ID ),
+			array( 672, 280 ),
+			false,
+			array(
+				'class'   => 'teda-focus-card__img',
+				'alt'     => '',
+				'loading' => 'lazy',
+			)
+		);
+
+		return is_string( $img ) ? $img : '';
 	}
 
 	/**
