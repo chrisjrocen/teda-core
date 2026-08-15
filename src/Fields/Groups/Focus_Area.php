@@ -10,7 +10,9 @@ namespace Teda_Core\Fields\Groups;
 use Teda_Core\Fields\Presets;
 
 /**
- * Focus Area fields (SPEC §5.1). Icon + accent colour + summary + order.
+ * Focus Area fields (SPEC §5.1). Icon + accent colour + order. The card
+ * description is the native WP excerpt (Blocksy's [blocksy_posts] card reads
+ * it directly), so there's no separate summary field here.
  * Colour is never the only signal — the icon and label always show (SPEC §3.1).
  */
 final class Focus_Area {
@@ -44,14 +46,6 @@ final class Focus_Area {
 					'desc'         => __( 'Pick the icon that best matches this focus area. It appears on the card next to the title.', 'teda-core' ),
 				),
 				Presets::accent_color(),
-				array(
-					'name'         => __( 'Short summary', 'teda-core' ),
-					'id'           => 'teda_summary',
-					'type'         => 'textarea',
-					'rows'         => 3,
-					'show_in_rest' => true,
-					'desc'         => __( 'One or two sentences describing this focus area. Shown on the card and at the top of the focus-area page.', 'teda-core' ),
-				),
 				array(
 					'name'         => __( 'Order', 'teda-core' ),
 					'id'           => 'teda_order',

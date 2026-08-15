@@ -125,7 +125,7 @@
 				label: label,
 				value: value || '',
 				options: schema.enum.map(function (v) {
-					return { label: humanize(v), value: v };
+					return { label: v === '' ? __('Default', 'teda-core') : humanize(v), value: v };
 				}),
 				onChange: onChange,
 			});

@@ -25,6 +25,8 @@ use WP_Post;
  */
 final class Events extends Block_Renderer {
 
+	private const BACKGROUNDS = array( 'green', 'green-light' );
+
 	/**
 	 * Memoised query results, keyed by "count|event_type".
 	 *
@@ -36,6 +38,22 @@ final class Events extends Block_Renderer {
 		return 'teda/events';
 	}
 
+	/**
+	 * @param array<string, mixed> $attributes Attributes.
+	 */
+	protected function extra_classes( array $attributes ): array {
+		$bg = $this->background( $attributes );
+		return '' !== $bg ? array( 'teda-events--' . $bg ) : array();
+	}
+
+	/**
+	 * @param array<string, mixed> $attributes Attributes.
+	 */
+	private function background( array $attributes ): string {
+		$value = $this->str_attr( $attributes, 'background' );
+		return in_array( $value, self::BACKGROUNDS, true ) ? $value : '';
+	}
+
 	protected function is_empty( array $attributes, WP_Block $block ): bool {
 		$sets = $this->events( $attributes );
 		return array() === $sets['upcoming'] && array() === $sets['past'];
@@ -45,6 +63,7 @@ final class Events extends Block_Renderer {
 		$channel = $this->str_attr( $attributes, 'channel_url' );
 		$label   = $this->str_attr( $attributes, 'channel_label', 'WhatsApp' );
 		$past    = $this->str_attr( $attributes, 'past_url' );
+		$light   = 'green' !== $this->background( $attributes );
 
 		$out = $this->header( $attributes );
 		$out .= '<div class="teda-empty"><h3>' . esc_html__( 'No events scheduled right now', 'teda-core' ) . '</h3>';
@@ -54,7 +73,7 @@ final class Events extends Block_Renderer {
 			esc_html( $label )
 		) . '</p>';
 		if ( '' !== $channel ) {
-			$out .= '<a class="teda-btn teda-btn--ghost-b" href="' . esc_url( $channel ) . '">'
+			$out .= '<a class="teda-btn ' . ( $light ? 'teda-btn--ghost-b' : 'teda-btn--ghost' ) . '" href="' . esc_url( $channel ) . '">'
 				. sprintf( /* translators: %s: channel name. */ esc_html__( 'Follow on %s', 'teda-core' ), esc_html( $label ) )
 				. '</a>';
 		}
@@ -81,9 +100,10 @@ final class Events extends Block_Renderer {
 		$group = $this->str_attr( $attributes, 'filter_group' );
 		$open  = '' !== $group ? '<div class="teda-events__list" data-teda-filtergroup="' . esc_attr( $group ) . '">' : '<div class="teda-events__list">';
 
-		$rows = '';
+		$light = 'green' !== $this->background( $attributes );
+		$rows  = '';
 		foreach ( $posts as $post ) {
-			$rows .= $this->row( $post, ! $upcoming );
+			$rows .= $this->row( $post, ! $upcoming, $light );
 		}
 
 		return $out . $open . $rows . '</div>';
@@ -92,7 +112,7 @@ final class Events extends Block_Renderer {
 	/**
 	 * One event row: date block | body | action (matches the prototype .evrow).
 	 */
-	private function row( WP_Post $post, bool $past ): string {
+	private function row( WP_Post $post, bool $past, bool $light ): string {
 		$start = teda_field_timestamp( 'teda_start_datetime', $post->ID );
 		$type  = $this->primary_type( $post );
 
@@ -118,7 +138,7 @@ final class Events extends Block_Renderer {
 		}
 		$row .= '</div>';
 
-		$row .= '<div class="teda-event__go">' . $this->action( $post, $past ) . '</div>';
+		$row .= '<div class="teda-event__go">' . $this->action( $post, $past, $light ) . '</div>';
 		$row .= '</div>';
 
 		return $row;
@@ -144,16 +164,17 @@ final class Events extends Block_Renderer {
 	 * The row's action button. Upcoming + registration open → Register; otherwise a
 	 * ghost "See highlights" (past) or "Details" link. Always to the event page.
 	 */
-	private function action( WP_Post $post, bool $past ): string {
-		$url = (string) get_permalink( $post );
+	private function action( WP_Post $post, bool $past, bool $light ): string {
+		$url   = (string) get_permalink( $post );
+		$ghost = $light ? 'teda-btn--ghost-b' : 'teda-btn--ghost';
 
 		if ( $past ) {
-			return '<a class="teda-btn teda-btn--ghost-b" href="' . esc_url( $url ) . '">' . esc_html__( 'See highlights', 'teda-core' ) . '</a>';
+			return '<a class="teda-btn ' . $ghost . '" href="' . esc_url( $url ) . '">' . esc_html__( 'See highlights', 'teda-core' ) . '</a>';
 		}
 		if ( teda_field_bool( 'teda_registration_open', $post->ID ) ) {
 			return '<a class="teda-btn teda-btn--brown" href="' . esc_url( $url ) . '">' . esc_html__( 'Register', 'teda-core' ) . '</a>';
 		}
-		return '<a class="teda-btn teda-btn--ghost-b" href="' . esc_url( $url ) . '">' . esc_html__( 'Details', 'teda-core' ) . '</a>';
+		return '<a class="teda-btn ' . $ghost . '" href="' . esc_url( $url ) . '">' . esc_html__( 'Details', 'teda-core' ) . '</a>';
 	}
 
 	/**

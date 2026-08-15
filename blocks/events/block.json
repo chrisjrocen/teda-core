@@ -56,12 +56,20 @@
 			"teda": {
 				"control": "url"
 			}
+		},
+		"background": {
+			"type": "string",
+			"default": "",
+			"enum": [
+				"",
+				"green",
+				"green-light"
+			]
 		}
 	},
 	"supports": {
 		"html": false,
 		"align": [
-			"wide",
 			"full"
 		]
 	}

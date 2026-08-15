@@ -80,10 +80,22 @@ abstract class Block_Renderer {
 		if ( $is_empty ) {
 			$classes[] = 'teda-block--empty';
 		}
+		$classes = array_merge( $classes, $this->extra_classes( $attributes ) );
 
 		$wrapper = get_block_wrapper_attributes( array( 'class' => implode( ' ', $classes ) ) );
 
 		return '<div ' . $wrapper . '>' . $inner . '</div>';
+	}
+
+	/**
+	 * Extra wrapper classes a subclass wants on the outer `.teda-block` element
+	 * (e.g. a background/variant modifier). Default: none.
+	 *
+	 * @param array<string, mixed> $attributes Attributes.
+	 * @return array<int, string>
+	 */
+	protected function extra_classes( array $attributes ): array {
+		return array();
 	}
 
 	/**
