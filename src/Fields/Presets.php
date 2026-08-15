@@ -48,7 +48,7 @@ final class Presets {
 				'blue'  => __( 'Teso blue', 'teda-core' ),
 				'green' => __( 'Olive green', 'teda-core' ),
 			),
-			'std'          => 'brown',
+			'std'          => 'green',
 			'show_in_rest' => true,
 			'desc'         => __( 'Pick the colour used to highlight this card. Only TEDA’s three brand colours are offered so the site stays consistent.', 'teda-core' ),
 		);

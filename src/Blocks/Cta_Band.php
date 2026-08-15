@@ -11,13 +11,14 @@ use WP_Block;
 
 /**
  * teda/cta-band — a colour-blocked call-to-action band (SPEC §4 item 9). Heading,
- * a sentence and up to two buttons, in one of three brand variants. Button styling
- * flips with the band so contrast holds: light buttons on the dark bands, dark
- * buttons on the sand band (SPEC §3.1).
+ * a sentence and up to two buttons, in one of four brand variants (green is the
+ * primary colour and the default). Button styling flips with the band so
+ * contrast holds: light buttons on the dark bands, dark buttons on the sand
+ * band (SPEC §3.1).
  */
 final class Cta_Band extends Block_Renderer {
 
-	private const VARIANTS = array( 'brown', 'blue', 'sand' );
+	private const VARIANTS = array( 'green', 'brown', 'blue', 'sand' );
 
 	public function name(): string {
 		return 'teda/cta-band';
@@ -29,7 +30,7 @@ final class Cta_Band extends Block_Renderer {
 	}
 
 	protected function render_content( array $attributes, string $content, WP_Block $block ): string {
-		$variant = $this->variant( $this->str_attr( $attributes, 'variant', 'brown' ) );
+		$variant = $this->variant( $this->str_attr( $attributes, 'variant', 'green' ) );
 		$heading = $this->str_attr( $attributes, 'heading' );
 		$body    = $this->str_attr( $attributes, 'body' );
 
@@ -91,6 +92,6 @@ final class Cta_Band extends Block_Renderer {
 	}
 
 	private function variant( string $value ): string {
-		return in_array( $value, self::VARIANTS, true ) ? $value : 'brown';
+		return in_array( $value, self::VARIANTS, true ) ? $value : 'green';
 	}
 }

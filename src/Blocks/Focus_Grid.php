@@ -90,7 +90,7 @@ final class Focus_Grid extends Block_Renderer {
 	 * label always accompany colour).
 	 */
 	private function card( WP_Post $post ): string {
-		$accent  = $this->accent( (string) teda_field( 'teda_accent_color', $post->ID, 'brown' ) );
+		$accent  = $this->accent( (string) teda_field( 'teda_accent_color', $post->ID, 'green' ) );
 		$summary = (string) teda_field( 'teda_summary', $post->ID, '' );
 		if ( '' === $summary ) {
 			$summary = wp_strip_all_tags( get_the_excerpt( $post ) );
@@ -190,6 +190,6 @@ final class Focus_Grid extends Block_Renderer {
 	 * Constrain an accent to the three brand colours.
 	 */
 	private function accent( string $value ): string {
-		return in_array( $value, self::ACCENTS, true ) ? $value : 'brown';
+		return in_array( $value, self::ACCENTS, true ) ? $value : 'green';
 	}
 }

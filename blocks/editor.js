@@ -30,6 +30,7 @@
 	var TextControl = cmp.TextControl;
 	var TextareaControl = cmp.TextareaControl;
 	var ToggleControl = cmp.ToggleControl;
+	var SelectControl = cmp.SelectControl;
 	var Button = cmp.Button;
 	var __ = wp.i18n.__;
 
@@ -116,6 +117,17 @@
 				onChange: function (v) {
 					onChange(v === '' ? undefined : parseInt(v, 10));
 				},
+			});
+		}
+		if (schema.type === 'string' && Array.isArray(schema.enum)) {
+			return el(SelectControl, {
+				key: key,
+				label: label,
+				value: value || '',
+				options: schema.enum.map(function (v) {
+					return { label: humanize(v), value: v };
+				}),
+				onChange: onChange,
 			});
 		}
 		if (schema.type === 'string') {

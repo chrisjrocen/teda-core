@@ -29,7 +29,8 @@ final class Hero_Page extends Block_Renderer {
 	}
 
 	protected function render_content( array $attributes, string $content, WP_Block $block ): string {
-		$variant = 'blue' === $this->str_attr( $attributes, 'variant', 'brown' ) ? 'blue' : 'brown';
+		$variant = $this->str_attr( $attributes, 'variant', 'green' );
+		$variant = in_array( $variant, array( 'blue', 'brown' ), true ) ? $variant : 'green';
 		$title   = $this->str_attr( $attributes, 'title' );
 		if ( '' === $title ) {
 			$title = (string) get_the_title();
