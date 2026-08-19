@@ -7,8 +7,6 @@ declare(strict_types=1);
 
 namespace Teda_Core\Fields\Groups;
 
-use Teda_Core\Fields\Presets;
-
 /**
  * Team fields (SPEC §5.1). The member’s photo is the post’s Featured image (one
  * obvious place, not a second uploader). Social links use a free key-value field
@@ -59,7 +57,6 @@ final class Team {
 					'show_in_rest' => true,
 					'desc'         => __( 'Optional. Put the platform on the left and the full web address on the right. e.g. LinkedIn → https://…', 'teda-core' ),
 				),
-				Presets::verified(),
 			),
 		);
 	}

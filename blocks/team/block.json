@@ -1,0 +1,44 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "teda/team",
+	"title": "TEDA Team",
+	"category": "teda",
+	"icon": "groups",
+	"description": "A grid of verified team members — photo (or initials), name linking to their full bio, role, a short bio and social links. Shows a designed empty state until at least one member is verified.",
+	"keywords": [
+		"teda",
+		"team",
+		"staff",
+		"leadership",
+		"people"
+	],
+	"textdomain": "teda-core",
+	"attributes": {
+		"eyebrow": {
+			"type": "string",
+			"default": "Our team",
+			"role": "content"
+		},
+		"heading": {
+			"type": "string",
+			"default": "Meet the team",
+			"role": "content"
+		},
+		"show_header": {
+			"type": "boolean",
+			"default": true
+		},
+		"count": {
+			"type": "integer",
+			"default": 12
+		}
+	},
+	"supports": {
+		"html": false,
+		"align": [
+			"wide",
+			"full"
+		]
+	}
+}

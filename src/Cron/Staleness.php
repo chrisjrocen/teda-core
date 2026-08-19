@@ -14,9 +14,9 @@ namespace Teda_Core\Cron;
  *
  * Each check answers one question a volunteer would otherwise have to remember to
  * ask: is the news going stale, are there any events to show, did an opportunity
- * outlive its deadline, is unverified content sitting on the public site, are any
- * team members still awaiting confirmation. Every row carries a link to the place
- * you fix it.
+ * outlive its deadline, is unverified content sitting on the public site. Every row
+ * carries a link to the place you fix it. Team members aren't checked here — a
+ * team post is live the moment it's published, so there's nothing to confirm.
  */
 final class Staleness {
 
@@ -35,7 +35,6 @@ final class Staleness {
 			self::events_row(),
 			self::open_expired_row(),
 			self::unverified_row(),
-			self::team_row(),
 		);
 	}
 
@@ -136,7 +135,7 @@ final class Staleness {
 
 	/**
 	 * Published-but-unverified content across the types that carry the D13 flag
-	 * (news and events; team is reported on its own row below).
+	 * (news and events).
 	 *
 	 * @return array<string, mixed>
 	 */
@@ -159,29 +158,6 @@ final class Staleness {
 				: sprintf( __( '%d published item(s) are not yet verified (D13). Confirm the details, then switch on “Verified for publishing”.', 'teda-core' ), $n ),
 			admin_url( 'edit.php' ),
 			__( 'Review content', 'teda-core' )
-		);
-	}
-
-	/**
-	 * Team members awaiting confirmation (published, not verified).
-	 *
-	 * @return array<string, mixed>
-	 */
-	private static function team_row(): array {
-		$n  = self::count_unverified_published( 'teda_team' );
-		$ok = 0 === $n;
-
-		return self::row(
-			'team',
-			__( 'Team members to confirm', 'teda-core' ),
-			$ok,
-			$n,
-			$ok
-				? __( 'All published team members are confirmed.', 'teda-core' )
-				/* translators: %d: number of members. */
-				: sprintf( __( '%d team member(s) need their name and consent confirmed before they stay public.', 'teda-core' ), $n ),
-			admin_url( 'edit.php?post_type=teda_team' ),
-			__( 'Review team', 'teda-core' )
 		);
 	}
 

@@ -21,7 +21,8 @@ final class Empty_State {
 
 	/**
 	 * Render the empty state for a context: events | news | spaces | opportunities
-	 * | gallery | default. Unknown contexts fall back to `default`.
+	 * | publications | gallery | team | default. Unknown contexts fall back to
+	 * `default`.
 	 *
 	 * @param string               $context One of the known contexts.
 	 * @param array<string, mixed> $args    Optional overrides (heading, text, actions).
@@ -112,6 +113,16 @@ final class Empty_State {
 					'actions' => array(
 						array( 'label' => __( 'About TEDA', 'teda-core' ), 'url' => home_url( '/about/' ), 'primary' => true ),
 						array( 'label' => __( 'Ask us a question', 'teda-core' ), 'url' => home_url( '/contact/' ) ),
+					),
+				);
+				break;
+
+			case 'team':
+				$config = array(
+					'heading' => __( 'Meet the team', 'teda-core' ),
+					'text'    => __( 'Leadership bios are on their way — check back soon.', 'teda-core' ),
+					'actions' => array(
+						array( 'label' => __( 'About TEDA', 'teda-core' ), 'url' => home_url( '/about/' ), 'primary' => true ),
 					),
 				);
 				break;

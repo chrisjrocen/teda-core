@@ -24,8 +24,10 @@ use Teda_Core\Support\Bootable;
  *     *meant* to fail now.
  *
  * "Verifiable" is the set of post types that carry the teda_verified flag (news,
- * team, events); other content (focus-area descriptions, etc.) is not a funder
- * claim and is not gated. The list is filterable so P-later can widen it.
+ * events); other content (focus-area descriptions, etc.) is not a funder claim and
+ * is not gated. Team is deliberately excluded — a team member goes live the moment
+ * their post is published; draft is the "not ready" state, not a separate flag.
+ * The list is filterable so P-later can widen it.
  */
 final class Verification implements Bootable {
 
@@ -49,7 +51,7 @@ final class Verification implements Bootable {
 		 *
 		 * @param array<int, string> $types Post type keys.
 		 */
-		return (array) apply_filters( 'teda_core/verifiable_post_types', array( 'post', 'teda_team', 'teda_event' ) );
+		return (array) apply_filters( 'teda_core/verifiable_post_types', array( 'post', 'teda_event' ) );
 	}
 
 	/**
