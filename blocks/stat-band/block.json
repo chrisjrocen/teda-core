@@ -5,7 +5,7 @@
 	"title": "TEDA Stat Band",
 	"category": "teda",
 	"icon": "chart-bar",
-	"description": "Up to four headline figures. Only figures you tick as verified are shown (SPEC §11). If fewer than three are verified, a single honest qualitative statement is shown instead of a thin band.",
+	"description": "Up to eight headline figures. Only figures you tick as verified are shown (SPEC §11). Below the minimum count (configurable), a single honest qualitative statement is shown instead of a thin band.",
 	"keywords": [
 		"teda",
 		"stats",
@@ -104,6 +104,105 @@
 			"default": false,
 			"teda": {
 				"group": "Stat 4"
+			}
+		},
+		"s5_value": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Stat 5"
+			},
+			"role": "content"
+		},
+		"s5_label": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Stat 5"
+			},
+			"role": "content"
+		},
+		"s5_verified": {
+			"type": "boolean",
+			"default": false,
+			"teda": {
+				"group": "Stat 5"
+			}
+		},
+		"s6_value": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Stat 6"
+			},
+			"role": "content"
+		},
+		"s6_label": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Stat 6"
+			},
+			"role": "content"
+		},
+		"s6_verified": {
+			"type": "boolean",
+			"default": false,
+			"teda": {
+				"group": "Stat 6"
+			}
+		},
+		"s7_value": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Stat 7"
+			},
+			"role": "content"
+		},
+		"s7_label": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Stat 7"
+			},
+			"role": "content"
+		},
+		"s7_verified": {
+			"type": "boolean",
+			"default": false,
+			"teda": {
+				"group": "Stat 7"
+			}
+		},
+		"s8_value": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Stat 8"
+			},
+			"role": "content"
+		},
+		"s8_label": {
+			"type": "string",
+			"default": "",
+			"teda": {
+				"group": "Stat 8"
+			},
+			"role": "content"
+		},
+		"s8_verified": {
+			"type": "boolean",
+			"default": false,
+			"teda": {
+				"group": "Stat 8"
+			}
+		},
+		"min_to_render": {
+			"type": "integer",
+			"default": 2,
+			"teda": {
+				"group": "Method note"
 			}
 		},
 		"as_of": {

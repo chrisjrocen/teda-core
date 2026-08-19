@@ -10,10 +10,10 @@ namespace Teda_Core\Blocks;
 use WP_Block;
 
 /**
- * teda/stat-band — four headline figures (SPEC §4 item 2, §11, D13).
+ * teda/stat-band — up to eight headline figures (SPEC §4 item 2, §11, D13).
  *
- * Honesty-by-construction: only figures ticked `verified` are rendered. If fewer
- * than three verified figures exist, the band is replaced with a single qualitative
+ * Honesty-by-construction: only figures ticked `verified` are rendered. Below the
+ * `min_to_render` threshold, the band is replaced with a single qualitative
  * statement ("Working across four districts of Teso") rather than showing a thin,
  * lopsided band. When any figure shows, the method note is appended. Numbers use a
  * tabular display face (teda-child CSS).
@@ -23,8 +23,7 @@ use WP_Block;
  */
 final class Stat_Band extends Block_Renderer {
 
-	private const SLOTS         = 4;
-	private const MIN_TO_RENDER = 3;
+	private const SLOTS = 8;
 
 	public function name(): string {
 		return 'teda/stat-band';
@@ -32,8 +31,9 @@ final class Stat_Band extends Block_Renderer {
 
 	protected function render_content( array $attributes, string $content, WP_Block $block ): string {
 		$stats = $this->verified_stats( $attributes );
+		$min   = $this->int_attr( $attributes, 'min_to_render', 3, 1, self::SLOTS );
 
-		if ( count( $stats ) < self::MIN_TO_RENDER ) {
+		if ( count( $stats ) < $min ) {
 			return $this->render_qualitative( $attributes );
 		}
 
