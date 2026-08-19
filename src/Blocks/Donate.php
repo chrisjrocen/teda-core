@@ -11,16 +11,21 @@ use WP_Block;
 use WP_Post;
 
 /**
- * teda/donate — the phase-1 donation page (SPEC §7, D11). A complete donation
- * experience with the transaction routed OFFLINE: mobile money + bank + prefilled
- * WhatsApp/email, driven by an amount selector whose choice carries into the
- * prefilled message.
+ * teda/donate — the donation page (SPEC §7, D11, P20). Phase 1 shipped a
+ * complete OFFLINE experience: mobile money + bank + prefilled WhatsApp/email,
+ * driven by an amount selector. Phase 2 (this file) adds a real LIVE route via
+ * Pesapal (Teda_Core\Donations) for donors who prefer online checkout.
  *
  * Mode comes from the Customizer setting `teda_donate_mode` (offline|live, default
  * offline). Live mode only renders a real payment path when a gateway is configured
- * (a filter that is false until P20); until then the public always sees the offline
- * page and admins additionally see a "not configured" notice. It is therefore
- * impossible to expose a broken payment path to the public.
+ * (`teda_core/donate/live_configured`, wired to Donations\Config::is_configured());
+ * until then the public always sees the offline page and admins additionally see a
+ * "not configured" notice. It is therefore impossible to expose a broken payment
+ * path to the public.
+ *
+ * Currency is real, not converted: a donor picks USD or UGX and every amount shown
+ * — impact tiers, selector, and (when live) the Pesapal charge itself — is in that
+ * exact currency. Nothing here derives one currency's amount from the other.
  *
  * The impact tiers, project cards and trust strip render identically in both modes.
  * Every amount states its currency explicitly — never inferred (§7 edge cases).
@@ -34,9 +39,15 @@ final class Donate extends Block_Renderer {
 	}
 
 	protected function render_content( array $attributes, string $content, WP_Block $block ): string {
-		$rate     = max( 1, $this->int_attr( $attributes, 'usd_rate', 3800, 1, PHP_INT_MAX ) );
-		$tiers    = $this->tiers( $attributes, $rate );
-		$default  = $tiers[1] ?? $tiers[0]; // 2nd tier is the pre-selected amount.
+		$currency = $this->str_attr( $attributes, 'currency_default', 'UGX' );
+		$currency = 'USD' === $currency ? 'USD' : 'UGX';
+
+		$tiers = array(
+			'UGX' => $this->tiers( $attributes, 'UGX' ),
+			'USD' => $this->tiers( $attributes, 'USD' ),
+		);
+		$default_set = $tiers[ $currency ];
+		$default     = $default_set[1] ?? ( $default_set[0] ?? array( 'amount' => 0, 'desc' => '' ) ); // 2nd tier is the pre-selected amount.
 
 		$out  = '<div class="teda-donate" id="teda-donate">';
 		$out .= '<div class="teda-donate__grid">';
@@ -47,14 +58,14 @@ final class Donate extends Block_Renderer {
 		if ( '' !== $lead ) {
 			$out .= '<p class="teda-donate__lead">' . esc_html( $lead ) . '</p>';
 		}
-		$out .= $this->impact_tiers( $tiers );
+		$out .= $this->impact_tiers( $tiers, $currency );
 		$out .= $this->project_cards();
 		$out .= $this->antifraud( $attributes );
 		$out .= $this->recent_updates();
 		$out .= '</div>';
 
 		// Sticky panel.
-		$out .= $this->panel( $attributes, $tiers, $default, $rate );
+		$out .= $this->panel( $attributes, $tiers, $currency );
 
 		$out .= '</div>'; // grid
 
@@ -71,32 +82,34 @@ final class Donate extends Block_Renderer {
 	/* ------------------------------------------------------------------ */
 
 	/**
-	 * @param array<string, mixed>              $attributes Attributes.
-	 * @param array<int, array<string, mixed>>  $tiers      Tiers.
-	 * @param array<string, mixed>              $default    Pre-selected tier.
+	 * @param array<string, mixed>                          $attributes Attributes.
+	 * @param array<string, array<int, array<string, mixed>>> $tiers    Tiers keyed by currency.
 	 */
-	private function panel( array $attributes, array $tiers, array $default, int $rate ): string {
+	private function panel( array $attributes, array $tiers, string $currency ): string {
 		$mode       = (string) get_theme_mod( 'teda_donate_mode', 'offline' );
 		$configured = (bool) apply_filters( 'teda_core/donate/live_configured', false );
+
+		$default_set = $tiers[ $currency ];
+		$default     = $default_set[1] ?? ( $default_set[0] ?? array( 'amount' => 0, 'desc' => '' ) );
 
 		$out = '<aside class="teda-donate__panel" id="teda-donate-panel">';
 
 		// Admin-only warning when live mode is on but no gateway exists.
 		if ( 'live' === $mode && ! $configured && current_user_can( 'manage_options' ) ) {
 			$out .= '<div class="teda-donate__adminnotice"><strong>' . esc_html__( 'Live mode is on but no payment gateway is configured.', 'teda-core' )
-				. '</strong> ' . esc_html__( 'Visitors are seeing the offline donation route. Configure a gateway (phase 2) before switching this on for real.', 'teda-core' ) . '</div>';
+				. '</strong> ' . esc_html__( 'Visitors are seeing the offline donation route. Add Pesapal credentials and register the IPN URL under Donations → Settings.', 'teda-core' ) . '</div>';
 		}
 
 		$out .= '<h2 class="teda-donate__paneltitle">' . esc_html__( 'Make a donation', 'teda-core' ) . '</h2>';
 		$out .= '<p class="teda-donate__panelsub">' . esc_html__( 'Choose an amount, then send it by mobile money or bank transfer.', 'teda-core' ) . '</p>';
 
-		$out .= $this->selector( $tiers, $default, $rate );
+		$out .= $this->selector( $tiers, $default, $currency );
 
 		// Phase 1 always renders the offline route to the public (live path is only
 		// shown when a gateway is actually configured — never in phase 1).
 		$out .= ( 'live' === $mode && $configured )
-			? $this->live_route( $attributes, $default )
-			: $this->offline_route( $attributes, $default );
+			? $this->live_route( $attributes, $default, $currency )
+			: $this->offline_route( $attributes );
 
 		$out .= '</aside>';
 
@@ -104,14 +117,16 @@ final class Donate extends Block_Renderer {
 	}
 
 	/**
-	 * The amount selector: frequency, currency, preset amounts + custom. Data
-	 * attributes let donate.js keep the offline CTAs in sync.
+	 * The amount selector: frequency, currency, preset amounts + custom. Amounts
+	 * for both currencies are rendered up front (one group hidden via CSS) so
+	 * donate.js can toggle currency client-side with no re-render — each amount
+	 * is a real tier in its own currency, never a computed conversion.
 	 *
-	 * @param array<int, array<string, mixed>> $tiers   Tiers.
-	 * @param array<string, mixed>             $default Pre-selected tier.
+	 * @param array<string, array<int, array<string, mixed>>> $tiers   Tiers keyed by currency.
+	 * @param array<string, mixed>                             $default Pre-selected tier (in $currency).
 	 */
-	private function selector( array $tiers, array $default, int $rate ): string {
-		$out = '<div class="teda-donate__selector" data-teda-rate="' . esc_attr( (string) $rate ) . '" data-teda-amount="' . esc_attr( (string) $default['amount'] ) . '" data-teda-freq="once" data-teda-cur="UGX">';
+	private function selector( array $tiers, array $default, string $currency ): string {
+		$out = '<div class="teda-donate__selector" data-teda-amount="' . esc_attr( (string) $default['amount'] ) . '" data-teda-freq="once" data-teda-cur="' . esc_attr( $currency ) . '">';
 
 		$out .= '<div class="teda-donate__freq" role="group" aria-label="' . esc_attr__( 'Giving frequency', 'teda-core' ) . '">'
 			. '<button type="button" class="teda-chip is-on" data-teda-freq="once" aria-pressed="true">' . esc_html__( 'Give once', 'teda-core' ) . '</button>'
@@ -119,42 +134,62 @@ final class Donate extends Block_Renderer {
 			. '</div>';
 
 		$out .= '<div class="teda-donate__cur" role="group" aria-label="' . esc_attr__( 'Currency', 'teda-core' ) . '">'
-			. '<button type="button" class="teda-chip is-on" data-teda-cur="UGX" aria-pressed="true">UGX</button>'
-			. '<button type="button" class="teda-chip" data-teda-cur="USD" aria-pressed="false">USD</button>'
+			. '<button type="button" class="teda-chip' . ( 'UGX' === $currency ? ' is-on' : '' ) . '" data-teda-cur="UGX" aria-pressed="' . ( 'UGX' === $currency ? 'true' : 'false' ) . '">UGX</button>'
+			. '<button type="button" class="teda-chip' . ( 'USD' === $currency ? ' is-on' : '' ) . '" data-teda-cur="USD" aria-pressed="' . ( 'USD' === $currency ? 'true' : 'false' ) . '">USD</button>'
 			. '</div>';
 
-		$out .= '<div class="teda-donate__amounts" role="group" aria-label="' . esc_attr__( 'Amount', 'teda-core' ) . '">';
-		foreach ( $tiers as $tier ) {
-			$on   = $tier['amount'] === $default['amount'];
-			$out .= '<button type="button" class="teda-donate__amt' . ( $on ? ' is-on' : '' ) . '" data-teda-set="' . esc_attr( (string) $tier['amount'] ) . '" aria-pressed="' . ( $on ? 'true' : 'false' ) . '">'
-				. '<span class="teda-donate__amt-ugx">UGX ' . esc_html( number_format( $tier['amount'] ) ) . '</span>'
-				. '<small class="teda-donate__amt-usd">' . esc_html( sprintf( /* translators: %s: USD amount. */ __( '≈ USD %s', 'teda-core' ), number_format( $tier['usd'] ) ) ) . '</small>'
-				. '</button>';
-		}
-		$out .= '<button type="button" class="teda-donate__amt" data-teda-set="custom" aria-pressed="false">' . esc_html__( 'Other', 'teda-core' ) . '</button>';
-		$out .= '</div>';
+		$out .= $this->amount_group( 'UGX', $tiers['UGX'], $default, $currency );
+		$out .= $this->amount_group( 'USD', $tiers['USD'], $default, $currency );
 
-		$out .= '<label class="teda-donate__customwrap" hidden><span class="teda-donate__customlabel">' . esc_html__( 'Amount in UGX', 'teda-core' ) . '</span>'
-			. '<input type="number" min="1000" step="1000" class="teda-donate__custom" inputmode="numeric"></label>';
+		$out .= '<label class="teda-donate__customwrap" hidden><span class="teda-donate__customlabel" data-teda-customlabel>' . esc_html( sprintf(
+			/* translators: %s: currency code. */
+			__( 'Amount in %s', 'teda-core' ),
+			$currency
+		) ) . '</span>'
+			. '<input type="number" min="1" step="1" class="teda-donate__custom" inputmode="numeric"></label>';
 
 		return $out . '</div>';
 	}
 
 	/**
-	 * The OFFLINE route (primary in phase 1): mobile money lines + prefilled WhatsApp
-	 * and email CTAs. The server-rendered hrefs already carry the default amount and
-	 * currency, so they work without JavaScript (§10.3); donate.js updates them.
+	 * One currency's amount-button group. Only the active currency's group is
+	 * visible; donate.js toggles `hidden` when the currency chip changes.
+	 *
+	 * @param array<int, array<string, mixed>> $tiers   This currency's tiers.
+	 * @param array<string, mixed>             $default The overall selected tier (may belong to the other currency).
+	 */
+	private function amount_group( string $group_currency, array $tiers, array $default, string $active_currency ): string {
+		$hidden = $group_currency !== $active_currency;
+
+		$out = '<div class="teda-donate__amounts" data-teda-tier-cur="' . esc_attr( $group_currency ) . '"' . ( $hidden ? ' hidden' : '' ) . ' role="group" aria-label="' . esc_attr__( 'Amount', 'teda-core' ) . '">';
+		foreach ( $tiers as $tier ) {
+			$on = ! $hidden && $tier['amount'] === $default['amount'];
+			$out .= '<button type="button" class="teda-donate__amt' . ( $on ? ' is-on' : '' ) . '" data-teda-set="' . esc_attr( (string) $tier['amount'] ) . '" aria-pressed="' . ( $on ? 'true' : 'false' ) . '">'
+				. esc_html( $group_currency . ' ' . number_format( $tier['amount'] ) ) . '</button>';
+		}
+		$out .= '<button type="button" class="teda-donate__amt" data-teda-set="custom" aria-pressed="false">' . esc_html__( 'Other', 'teda-core' ) . '</button>';
+		return $out . '</div>';
+	}
+
+	/**
+	 * The OFFLINE route (mobile money + bank + prefilled WhatsApp/email). These
+	 * channels are UGX-denominated in practice (local mobile money, local bank
+	 * account), so — unlike the live route — this always quotes the UGX tiers,
+	 * regardless of which currency is toggled above; the amount is still always
+	 * explicit, never inferred.
 	 *
 	 * @param array<string, mixed> $attributes Attributes.
-	 * @param array<string, mixed> $default    Pre-selected tier.
 	 */
-	private function offline_route( array $attributes, array $default ): string {
+	private function offline_route( array $attributes ): string {
+		$ugx_tiers = $this->tiers( $attributes, 'UGX' );
+		$default   = $ugx_tiers[1] ?? ( $ugx_tiers[0] ?? array( 'amount' => 0, 'desc' => '' ) );
+
 		$whatsapp = preg_replace( '/\D+/', '', $this->str_attr( $attributes, 'whatsapp', '256700000000' ) );
 		$email    = $this->str_attr( $attributes, 'email', 'tedayouthteso@gmail.com' );
 		$mtn      = $this->str_attr( $attributes, 'mtn' );
 		$airtel   = $this->str_attr( $attributes, 'airtel' );
 
-		$msg      = $this->message( $default['amount'], $default['usd'] );
+		$msg      = $this->message( (int) $default['amount'] );
 		$wa_href  = 'https://wa.me/' . rawurlencode( (string) $whatsapp ) . '?text=' . rawurlencode( $msg );
 		$mail_sub = __( 'Donation to TEDA', 'teda-core' );
 		$mail_href = 'mailto:' . rawurlencode( $email ) . '?subject=' . rawurlencode( $mail_sub ) . '&body=' . rawurlencode( $msg );
@@ -162,7 +197,7 @@ final class Donate extends Block_Renderer {
 		$out = '<div class="teda-donate__offline">';
 
 		$out .= '<div class="teda-way teda-way--accent"><h3>' . esc_html__( 'Mobile money', 'teda-core' ) . '</h3>';
-		$out .= '<p>' . esc_html__( 'Send', 'teda-core' ) . ' <b data-teda-amount-text>UGX ' . esc_html( number_format( $default['amount'] ) ) . '</b> '
+		$out .= '<p>' . esc_html__( 'Send', 'teda-core' ) . ' <b data-teda-amount-text>UGX ' . esc_html( number_format( (int) $default['amount'] ) ) . '</b> '
 			. esc_html__( 'to our registered organization line, then tell us so we can record it.', 'teda-core' ) . '</p>';
 		if ( '' !== $mtn ) {
 			$out .= '<code>' . esc_html( $mtn ) . '</code>';
@@ -177,21 +212,42 @@ final class Donate extends Block_Renderer {
 		$out .= '<a class="teda-btn teda-btn--ghost-b teda-donate__cta" data-teda-email href="' . esc_url( $mail_href ) . '" data-teda-base="mailto:' . esc_attr( $email ) . '?subject=' . esc_attr( rawurlencode( $mail_sub ) ) . '&amp;body=">'
 			. esc_html__( 'Email us', 'teda-core' ) . '</a>';
 
-		$out .= '<p class="teda-donate__note">' . esc_html__( 'Live card and mobile money checkout arrives in phase 2, once payment gateway registration is complete.', 'teda-core' ) . '</p>';
+		$out .= '<p class="teda-donate__note">' . esc_html__( 'Prefer USD or card? Turn on live checkout above once it is configured — it charges the exact currency you choose.', 'teda-core' ) . '</p>';
 
 		return $out . '</div>';
 	}
 
 	/**
-	 * The LIVE route scaffold. Only reached when a gateway is configured (never in
-	 * phase 1). Kept minimal — P20 fills in the real form.
+	 * The LIVE route: a small donor-detail form that POSTs to
+	 * `teda/v1/donations` (Donations\Rest_Controller) and redirects to Pesapal's
+	 * hosted checkout on success. Requires JS — the offline route above remains
+	 * the no-JS-safe default whenever live mode isn't actually configured, so
+	 * this never becomes the only path a donor can reach.
 	 *
 	 * @param array<string, mixed> $attributes Attributes.
 	 * @param array<string, mixed> $default    Pre-selected tier.
 	 */
-	private function live_route( array $attributes, array $default ): string {
-		return '<div class="teda-donate__live"><p>' . esc_html__( 'Secure checkout — mobile money or card. The currency you will be charged is confirmed on the next step, never inferred.', 'teda-core' ) . '</p>'
-			. '<a class="teda-btn teda-btn--brown teda-btn--lg" href="#" data-teda-donate-submit>' . esc_html( sprintf( /* translators: %s: amount. */ __( 'Donate UGX %s', 'teda-core' ), number_format( $default['amount'] ) ) ) . '</a></div>';
+	private function live_route( array $attributes, array $default, string $currency ): string {
+		$nonce = wp_create_nonce( 'wp_rest' );
+
+		$out  = '<div class="teda-donate__live" data-teda-live-panel>';
+		$out .= '<p>' . esc_html__( 'Secure checkout hosted by Pesapal — mobile money or card. The currency you are charged is confirmed on the next step, never inferred.', 'teda-core' ) . '</p>';
+
+		$out .= '<label>' . esc_html__( 'Full name', 'teda-core' ) . '<input type="text" name="donor_name" required></label>';
+		$out .= '<label>' . esc_html__( 'Email', 'teda-core' ) . '<input type="email" name="donor_email" required></label>';
+		$out .= '<label>' . esc_html__( 'Phone (for mobile money)', 'teda-core' ) . '<input type="tel" name="donor_phone"></label>';
+		$out .= '<input type="hidden" name="focus_area_id" value="">';
+
+		$out .= '<button type="button" class="teda-btn teda-btn--brown teda-btn--lg" data-teda-donate-submit'
+			. ' data-teda-rest-nonce="' . esc_attr( $nonce ) . '"'
+			. ' data-teda-rest-url="' . esc_url( rest_url( 'teda/v1/donations' ) ) . '">'
+			. esc_html( sprintf( /* translators: 1: currency, 2: amount. */ __( 'Donate %1$s %2$s', 'teda-core' ), $currency, number_format( (int) $default['amount'] ) ) )
+			. '</button>';
+
+		$out .= '<p class="teda-donate__error" data-teda-donate-error hidden role="alert"></p>';
+		$out .= '<p class="teda-donate__note">' . esc_html__( 'A monthly card gift renews automatically via Pesapal, who will email you a link to manage or cancel it. A monthly mobile-money gift is a reminder, not an auto-charge — you send it again each month, and can stop the reminder any time.', 'teda-core' ) . '</p>';
+
+		return $out . '</div>';
 	}
 
 	/* ------------------------------------------------------------------ */
@@ -199,18 +255,23 @@ final class Donate extends Block_Renderer {
 	/* ------------------------------------------------------------------ */
 
 	/**
-	 * @param array<int, array<string, mixed>> $tiers Tiers.
+	 * @param array<string, array<int, array<string, mixed>>> $tiers Tiers keyed by currency.
 	 */
-	private function impact_tiers( array $tiers ): string {
+	private function impact_tiers( array $tiers, string $currency ): string {
 		$out = '<div class="teda-donate__section"><span class="teda-eyebrow">' . esc_html__( 'Your impact', 'teda-core' ) . '</span>'
-			. '<h2 class="teda-display">' . esc_html__( 'What your gift does', 'teda-core' ) . '</h2>'
-			. '<div class="teda-donate__tiers">';
-		foreach ( $tiers as $tier ) {
-			$out .= '<div class="teda-tier"><b class="teda-tier__amount">UGX ' . esc_html( number_format( $tier['amount'] ) )
-				. '<small>' . esc_html( sprintf( /* translators: %s: USD amount. */ __( '≈ USD %s', 'teda-core' ), number_format( $tier['usd'] ) ) ) . '</small></b>'
-				. '<div class="teda-tier__body"><p class="teda-tier__desc">' . esc_html( $tier['desc'] ) . '</p></div></div>';
+			. '<h2 class="teda-display">' . esc_html__( 'What your gift does', 'teda-core' ) . '</h2>';
+
+		foreach ( array( 'UGX', 'USD' ) as $group_currency ) {
+			$hidden = $group_currency !== $currency;
+			$out   .= '<div class="teda-donate__tiers" data-teda-tier-cur="' . esc_attr( $group_currency ) . '"' . ( $hidden ? ' hidden' : '' ) . '>';
+			foreach ( $tiers[ $group_currency ] as $tier ) {
+				$out .= '<div class="teda-tier"><b class="teda-tier__amount">' . esc_html( $group_currency . ' ' . number_format( $tier['amount'] ) ) . '</b>'
+					. '<div class="teda-tier__body"><p class="teda-tier__desc">' . esc_html( $tier['desc'] ) . '</p></div></div>';
+			}
+			$out .= '</div>';
 		}
-		return $out . '</div></div>';
+
+		return $out . '</div>';
 	}
 
 	/**
@@ -239,7 +300,7 @@ final class Donate extends Block_Renderer {
 			if ( '' !== $summary ) {
 				$out .= '<p>' . esc_html( $summary ) . '</p>';
 			}
-			$out .= '<a class="teda-btn teda-btn--brown" href="#teda-donate-panel">' . esc_html__( 'Give to this', 'teda-core' ) . '</a></div>';
+			$out .= '<a class="teda-btn teda-btn--brown" href="#teda-donate-panel" data-teda-focus-area="' . esc_attr( (string) $post->ID ) . '">' . esc_html__( 'Give to this', 'teda-core' ) . '</a></div>';
 		}
 		wp_reset_postdata();
 
@@ -317,34 +378,34 @@ final class Donate extends Block_Renderer {
 	/* ------------------------------------------------------------------ */
 
 	/**
-	 * The prefilled message for WhatsApp/email, naming the currency explicitly.
+	 * The prefilled offline message, always in UGX (§ offline_route note).
 	 */
-	private function message( int $ugx, int $usd ): string {
+	private function message( int $ugx ): string {
 		return sprintf(
-			/* translators: 1: UGX amount, 2: USD amount. */
-			__( 'Hello TEDA, I would like to donate UGX %1$s (about USD %2$s) as a one-off gift. Please tell me how to complete it.', 'teda-core' ),
-			number_format( $ugx ),
-			number_format( $usd )
+			/* translators: %s: UGX amount. */
+			__( 'Hello TEDA, I would like to donate UGX %s as a one-off gift. Please tell me how to complete it.', 'teda-core' ),
+			number_format( $ugx )
 		);
 	}
 
 	/**
-	 * Normalise the five tiers with computed USD approximations.
+	 * This currency's five tiers, each a real amount in that currency — never
+	 * derived from the other currency.
 	 *
 	 * @param array<string, mixed> $attributes Attributes.
-	 * @return array<int, array{amount:int, usd:int, desc:string}>
+	 * @return array<int, array{amount:int, desc:string}>
 	 */
-	private function tiers( array $attributes, int $rate ): array {
-		$tiers = array();
+	private function tiers( array $attributes, string $currency ): array {
+		$prefix = 'USD' === $currency ? 'usd' : 'ugx';
+		$tiers  = array();
 		for ( $n = 1; $n <= self::TIERS; $n++ ) {
-			$amount = $this->int_attr( $attributes, "t{$n}_amount", 0, 0, PHP_INT_MAX );
+			$amount = $this->int_attr( $attributes, "{$prefix}_t{$n}_amount", 0, 0, PHP_INT_MAX );
 			if ( $amount <= 0 ) {
 				continue;
 			}
 			$tiers[] = array(
 				'amount' => $amount,
-				'usd'    => (int) round( $amount / $rate ),
-				'desc'   => $this->str_attr( $attributes, "t{$n}_desc" ),
+				'desc'   => $this->str_attr( $attributes, "{$prefix}_t{$n}_desc" ),
 			);
 		}
 		return $tiers;

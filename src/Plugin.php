@@ -43,12 +43,14 @@ final class Plugin {
 		Forms\Registry::class,
 		Spaces\Presenter::class,
 		Cron\Scheduler::class,
+		Donations\Registry::class,
 		Redirects\Map::class,
 		Seo\Config::class,
 		Support\Env::class,
 		Admin\Notices::class,
 		Admin\Verification::class,
 		Admin\Roles::class,
+		Admin\Donations_Screen::class,
 	);
 
 	/**
@@ -190,6 +192,7 @@ final class Plugin {
 			wp_unschedule_event( $timestamp, self::CRON_DAILY );
 		}
 		wp_clear_scheduled_hook( self::CRON_DAILY );
+		wp_clear_scheduled_hook( Donations\Registry::CRON_HOOK );
 
 		flush_rewrite_rules();
 	}
