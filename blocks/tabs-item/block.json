@@ -1,0 +1,24 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "teda/tabs-item",
+	"title": "TEDA Tab",
+	"category": "teda",
+	"icon": "index-card",
+	"description": "One tab inside a TEDA Tabs block. Can only be used inside teda/tabs.",
+	"keywords": [
+		"teda",
+		"tab"
+	],
+	"textdomain": "teda-core",
+	"parent": [ "teda/tabs" ],
+	"attributes": {
+		"label": {
+			"type": "string",
+			"default": "Tab"
+		}
+	},
+	"supports": {
+		"html": false
+	}
+}

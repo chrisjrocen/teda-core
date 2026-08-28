@@ -1,0 +1,20 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "teda/tabs",
+	"title": "TEDA Tabs",
+	"category": "teda",
+	"icon": "index-card",
+	"description": "Group any blocks under switchable tab headings. Add teda/tabs-item children, one per tab.",
+	"keywords": [
+		"teda",
+		"tabs",
+		"accordion",
+		"toggle"
+	],
+	"textdomain": "teda-core",
+	"supports": {
+		"html": false,
+		"align": [ "wide" ]
+	}
+}

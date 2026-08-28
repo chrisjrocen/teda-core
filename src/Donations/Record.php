@@ -35,6 +35,7 @@ final class Record {
 	public float $amount;
 	public string $currency;
 	public ?int $focus_area_id;
+	public ?string $goal_label;
 	public string $frequency;
 	public string $method;
 	public string $status;
@@ -61,6 +62,7 @@ final class Record {
 		$record->amount                    = (float) $row['amount'];
 		$record->currency                  = (string) $row['currency'];
 		$record->focus_area_id             = null !== $row['focus_area_id'] ? (int) $row['focus_area_id'] : null;
+		$record->goal_label                = isset( $row['goal_label'] ) && null !== $row['goal_label'] ? (string) $row['goal_label'] : null;
 		$record->frequency                 = (string) $row['frequency'];
 		$record->method                    = (string) $row['method'];
 		$record->status                    = (string) $row['status'];

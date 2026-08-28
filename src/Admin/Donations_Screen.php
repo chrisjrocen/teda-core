@@ -73,13 +73,13 @@ final class Donations_Screen implements Bootable {
 		echo '<p><a href="' . esc_url( $export_url ) . '" class="button">' . esc_html__( 'Export CSV (for weekly reconciliation)', 'teda-core' ) . '</a></p>';
 
 		echo '<table class="widefat striped"><thead><tr>';
-		foreach ( array( 'Date', 'Reference', 'Donor', 'Amount', 'Frequency', 'Method', 'Status', 'Tracking ID' ) as $col ) {
+		foreach ( array( 'Date', 'Reference', 'Donor', 'Amount', 'Goal', 'Frequency', 'Method', 'Status', 'Tracking ID' ) as $col ) {
 			echo '<th>' . esc_html( $col ) . '</th>';
 		}
 		echo '</tr></thead><tbody>';
 
 		if ( array() === $records ) {
-			echo '<tr><td colspan="8">' . esc_html__( 'No donations yet.', 'teda-core' ) . '</td></tr>';
+			echo '<tr><td colspan="9">' . esc_html__( 'No donations yet.', 'teda-core' ) . '</td></tr>';
 		}
 
 		foreach ( $records as $record ) {
@@ -88,6 +88,7 @@ final class Donations_Screen implements Bootable {
 			echo '<td>' . esc_html( $record->reference ) . '</td>';
 			echo '<td>' . esc_html( $record->donor_name . ' <' . $record->donor_email . '>' ) . '</td>';
 			echo '<td>' . esc_html( $record->currency . ' ' . number_format( $record->amount, 2 ) ) . '</td>';
+			echo '<td>' . esc_html( '' !== ( $record->goal_label ?? '' ) ? $record->goal_label : '—' ) . '</td>';
 			echo '<td>' . esc_html( $record->frequency ) . '</td>';
 			echo '<td>' . esc_html( '' !== $record->method ? $record->method : '—' ) . '</td>';
 			echo '<td>' . esc_html( $record->status ) . '</td>';
@@ -199,7 +200,7 @@ final class Donations_Screen implements Bootable {
 		header( 'Content-Disposition: attachment; filename="teda-donations-' . gmdate( 'Y-m-d' ) . '.csv"' );
 
 		$out = fopen( 'php://output', 'w' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen
-		fputcsv( $out, array( 'Date', 'Reference', 'Donor name', 'Donor email', 'Amount', 'Currency', 'Focus area', 'Frequency', 'Method', 'Status', 'Tracking ID' ) );
+		fputcsv( $out, array( 'Date', 'Reference', 'Donor name', 'Donor email', 'Amount', 'Currency', 'Focus area', 'Goal', 'Frequency', 'Method', 'Status', 'Tracking ID' ) );
 
 		foreach ( $records as $record ) {
 			fputcsv(
@@ -212,6 +213,7 @@ final class Donations_Screen implements Bootable {
 					number_format( $record->amount, 2, '.', '' ),
 					$record->currency,
 					null !== $record->focus_area_id ? get_the_title( $record->focus_area_id ) : '',
+					$record->goal_label ?? '',
 					$record->frequency,
 					$record->method,
 					$record->status,

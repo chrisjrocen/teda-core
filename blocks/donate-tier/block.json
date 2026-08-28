@@ -1,0 +1,20 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "teda/donate-tier",
+	"title": "TEDA Donation Tier",
+	"category": "teda",
+	"icon": "tag",
+	"description": "One preset donation amount + description inside a TEDA Donate block. Can only be used inside teda/donate.",
+	"keywords": ["teda", "donate", "tier", "amount"],
+	"textdomain": "teda-core",
+	"parent": ["teda/donate"],
+	"attributes": {
+		"currency": { "type": "string", "default": "UGX", "enum": ["UGX", "USD"] },
+		"amount": { "type": "integer", "default": 0 },
+		"description": { "type": "string", "default": "" }
+	},
+	"supports": {
+		"html": false
+	}
+}

@@ -31,6 +31,7 @@ final class Repository {
 				'donor_name'                 => '',
 				'donor_phone'                => '',
 				'focus_area_id'              => null,
+				'goal_label'                 => null,
 				'frequency'                  => Record::FREQUENCY_ONCE,
 				'method'                     => '',
 				'status'                     => Record::STATUS_PENDING,

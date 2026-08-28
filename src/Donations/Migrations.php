@@ -43,6 +43,7 @@ final class Migrations {
 			amount DECIMAL(14,2) NOT NULL,
 			currency VARCHAR(3) NOT NULL,
 			focus_area_id BIGINT UNSIGNED NULL,
+			goal_label VARCHAR(191) NULL,
 			frequency VARCHAR(10) NOT NULL DEFAULT 'once',
 			method VARCHAR(20) NOT NULL DEFAULT '',
 			status VARCHAR(20) NOT NULL DEFAULT 'pending',

@@ -65,7 +65,7 @@ final class Rest_Controller {
 		if ( is_wp_error( $validated ) ) {
 			return $validated;
 		}
-		list( $amount, $currency, $frequency, $donor_name, $donor_email, $donor_phone, $focus_area_id ) = $validated;
+		list( $amount, $currency, $frequency, $donor_name, $donor_email, $donor_phone, $focus_area_id, $goal_label ) = $validated;
 
 		$repository = new Repository();
 		$reference  = $this->generate_reference();
@@ -85,6 +85,7 @@ final class Rest_Controller {
 				'amount'         => $amount,
 				'currency'       => $currency,
 				'focus_area_id'  => $focus_area_id,
+				'goal_label'     => $goal_label,
 				'frequency'      => $frequency,
 				'is_recurring'   => $is_recurring ? 1 : 0,
 				'pledge_active'  => $is_pledge ? 1 : 0,
@@ -99,7 +100,7 @@ final class Rest_Controller {
 			$repository->update_status( $id, Record::STATUS_PENDING, array( 'pledge_token' => $token ) );
 		}
 
-		$order = $this->build_order( $reference, $id, $amount, $currency, $donor_name, $donor_email, $donor_phone, $focus_area_id, $is_recurring );
+		$order = $this->build_order( $reference, $id, $amount, $currency, $donor_name, $donor_email, $donor_phone, $focus_area_id, $goal_label, $is_recurring );
 
 		try {
 			$response = ( new Pesapal_Client() )->submit_order( $order );
@@ -140,7 +141,7 @@ final class Rest_Controller {
 	}
 
 	/**
-	 * @return WP_Error|array{0:float,1:string,2:string,3:string,4:string,5:string,6:?int}
+	 * @return WP_Error|array{0:float,1:string,2:string,3:string,4:string,5:string,6:?int,7:?string}
 	 */
 	private function validate( WP_REST_Request $request ) {
 		$amount   = (float) $request->get_param( 'amount' );
@@ -150,6 +151,7 @@ final class Rest_Controller {
 		$donor_email = sanitize_email( (string) $request->get_param( 'donor_email' ) );
 		$donor_phone = sanitize_text_field( (string) $request->get_param( 'donor_phone' ) );
 		$focus_area_param = $request->get_param( 'focus_area_id' );
+		$goal_label_param = $request->get_param( 'goal_label' );
 
 		if ( ! in_array( $currency, array( Record::CURRENCY_USD, Record::CURRENCY_UGX ), true ) ) {
 			return new WP_Error( 'teda_donation_bad_currency', __( 'Choose USD or UGX.', 'teda-core' ), array( 'status' => 400 ) );
@@ -175,24 +177,41 @@ final class Rest_Controller {
 			}
 		}
 
-		return array( $amount, $currency, $frequency, $donor_name, $donor_email, $donor_phone, $focus_area_id );
+		// Freeform, editor-authored content, not a reference to an existing entity
+		// (unlike focus_area_id above) — so only sanitized/length-capped, never
+		// existence-checked.
+		$goal_label = null;
+		if ( is_string( $goal_label_param ) && '' !== trim( $goal_label_param ) ) {
+			$goal_label = sanitize_text_field( trim( $goal_label_param ) );
+			if ( mb_strlen( $goal_label ) > 191 ) {
+				$goal_label = mb_substr( $goal_label, 0, 191 );
+			}
+		}
+
+		return array( $amount, $currency, $frequency, $donor_name, $donor_email, $donor_phone, $focus_area_id, $goal_label );
 	}
 
 	/**
 	 * @return array<string, mixed>
 	 */
-	private function build_order( string $reference, int $donation_id, float $amount, string $currency, string $donor_name, string $donor_email, string $donor_phone, ?int $focus_area_id, bool $is_recurring ): array {
+	private function build_order( string $reference, int $donation_id, float $amount, string $currency, string $donor_name, string $donor_email, string $donor_phone, ?int $focus_area_id, ?string $goal_label, bool $is_recurring ): array {
 		$name_parts = preg_split( '/\s+/', trim( $donor_name ), 2 );
 		$first_name = $name_parts[0] ?? $donor_name;
 		$last_name  = $name_parts[1] ?? '';
 
-		$description = null !== $focus_area_id
-			? sprintf(
+		// A goal is the primary targeting mechanism now — prefer it over the
+		// focus-area-derived description when both happen to be present.
+		if ( null !== $goal_label ) {
+			$description = sprintf( /* translators: %s: goal label. */ __( 'Donation to %s', 'teda-core' ), $goal_label );
+		} elseif ( null !== $focus_area_id ) {
+			$description = sprintf(
 				/* translators: %s: focus area title. */
 				__( 'Donation to %s', 'teda-core' ),
 				get_the_title( $focus_area_id )
-			)
-			: __( 'Donation to TEDA', 'teda-core' );
+			);
+		} else {
+			$description = __( 'Donation to TEDA', 'teda-core' );
+		}
 
 		$order = array(
 			'id'              => $reference,

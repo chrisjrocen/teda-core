@@ -27,12 +27,10 @@ use WP_Post;
  * — impact tiers, selector, and (when live) the Pesapal charge itself — is in that
  * exact currency. Nothing here derives one currency's amount from the other.
  *
- * The impact tiers, project cards and trust strip render identically in both modes.
+ * The impact tiers, goal cards and trust strip render identically in both modes.
  * Every amount states its currency explicitly — never inferred (§7 edge cases).
  */
 final class Donate extends Block_Renderer {
-
-	private const TIERS = 5;
 
 	public function name(): string {
 		return 'teda/donate';
@@ -43,8 +41,8 @@ final class Donate extends Block_Renderer {
 		$currency = 'USD' === $currency ? 'USD' : 'UGX';
 
 		$tiers = array(
-			'UGX' => $this->tiers( $attributes, 'UGX' ),
-			'USD' => $this->tiers( $attributes, 'USD' ),
+			'UGX' => $this->tiers( $block, 'UGX' ),
+			'USD' => $this->tiers( $block, 'USD' ),
 		);
 		$default_set = $tiers[ $currency ];
 		$default     = $default_set[1] ?? ( $default_set[0] ?? array( 'amount' => 0, 'desc' => '' ) ); // 2nd tier is the pre-selected amount.
@@ -58,19 +56,28 @@ final class Donate extends Block_Renderer {
 		if ( '' !== $lead ) {
 			$out .= '<p class="teda-donate__lead">' . esc_html( $lead ) . '</p>';
 		}
+		$goals = $this->goals( $block );
+
 		$out .= $this->impact_tiers( $tiers, $currency );
-		$out .= $this->project_cards();
-		$out .= $this->antifraud( $attributes );
-		$out .= $this->recent_updates();
+		if ( $this->bool_attr( $attributes, 'show_projects', true ) && array() !== $goals ) {
+			$out .= $this->goal_cards( $goals );
+		}
+		if ( $this->bool_attr( $attributes, 'show_antifraud', true ) ) {
+			$out .= $this->antifraud( $attributes );
+		}
 		$out .= '</div>';
 
 		// Sticky panel.
-		$out .= $this->panel( $attributes, $tiers, $currency );
+		$out .= $this->panel( $attributes, $tiers, $currency, $goals, $block );
 
 		$out .= '</div>'; // grid
 
-		$out .= $this->trust_strip( $attributes );
-		$out .= $this->other_ways( $attributes );
+		if ( $this->bool_attr( $attributes, 'show_trust_strip', true ) ) {
+			$out .= $this->trust_strip( $attributes );
+		}
+		if ( $this->bool_attr( $attributes, 'show_other_ways', true ) ) {
+			$out .= $this->other_ways( $attributes );
+		}
 
 		$out .= '</div>';
 
@@ -84,8 +91,9 @@ final class Donate extends Block_Renderer {
 	/**
 	 * @param array<string, mixed>                          $attributes Attributes.
 	 * @param array<string, array<int, array<string, mixed>>> $tiers    Tiers keyed by currency.
+	 * @param array<int, array{label:string, description:string, image:int}> $goals Editor-authored donation goals.
 	 */
-	private function panel( array $attributes, array $tiers, string $currency ): string {
+	private function panel( array $attributes, array $tiers, string $currency, array $goals, WP_Block $block ): string {
 		$mode       = (string) get_theme_mod( 'teda_donate_mode', 'offline' );
 		$configured = (bool) apply_filters( 'teda_core/donate/live_configured', false );
 
@@ -105,11 +113,15 @@ final class Donate extends Block_Renderer {
 
 		$out .= $this->selector( $tiers, $default, $currency );
 
+		if ( array() !== $goals ) {
+			$out .= $this->goal_picker( $goals );
+		}
+
 		// Phase 1 always renders the offline route to the public (live path is only
 		// shown when a gateway is actually configured — never in phase 1).
 		$out .= ( 'live' === $mode && $configured )
 			? $this->live_route( $attributes, $default, $currency )
-			: $this->offline_route( $attributes );
+			: $this->offline_route( $attributes, $block );
 
 		$out .= '</aside>';
 
@@ -180,8 +192,8 @@ final class Donate extends Block_Renderer {
 	 *
 	 * @param array<string, mixed> $attributes Attributes.
 	 */
-	private function offline_route( array $attributes ): string {
-		$ugx_tiers = $this->tiers( $attributes, 'UGX' );
+	private function offline_route( array $attributes, WP_Block $block ): string {
+		$ugx_tiers = $this->tiers( $block, 'UGX' );
 		$default   = $ugx_tiers[1] ?? ( $ugx_tiers[0] ?? array( 'amount' => 0, 'desc' => '' ) );
 
 		$whatsapp = preg_replace( '/\D+/', '', $this->str_attr( $attributes, 'whatsapp', '256700000000' ) );
@@ -237,6 +249,7 @@ final class Donate extends Block_Renderer {
 		$out .= '<label>' . esc_html__( 'Email', 'teda-core' ) . '<input type="email" name="donor_email" required></label>';
 		$out .= '<label>' . esc_html__( 'Phone (for mobile money)', 'teda-core' ) . '<input type="tel" name="donor_phone"></label>';
 		$out .= '<input type="hidden" name="focus_area_id" value="">';
+		$out .= '<input type="hidden" name="goal_label" value="" data-teda-goal-field>';
 
 		$out .= '<button type="button" class="teda-btn teda-btn--brown teda-btn--lg" data-teda-donate-submit'
 			. ' data-teda-rest-nonce="' . esc_attr( $nonce ) . '"'
@@ -275,36 +288,48 @@ final class Donate extends Block_Renderer {
 	}
 
 	/**
-	 * Project cards, one per published focus area (choose where the gift goes). Each
-	 * links to the donation panel. Rendered only when focus areas exist.
+	 * Goal cards, one per editor-authored donation goal (choose where the gift
+	 * goes). Each links to the donation panel and drives the panel's goal_picker()
+	 * selection via the shared `data-teda-goal` identifier (the goal's label).
+	 *
+	 * @param array<int, array{label:string, description:string, image:int}> $goals Editor-authored donation goals.
 	 */
-	private function project_cards(): string {
-		$query = Query::get(
-			array(
-				'post_type'      => 'teda_focus_area',
-				'posts_per_page' => 6,
-			)
-		);
-		if ( ! $query->have_posts() ) {
-			return '';
-		}
-
+	private function goal_cards( array $goals ): string {
 		$out = '<div class="teda-donate__section"><span class="teda-eyebrow">' . esc_html__( 'Choose a cause', 'teda-core' ) . '</span>'
 			. '<h2 class="teda-display">' . esc_html__( 'Where your gift goes', 'teda-core' ) . '</h2><div class="teda-donate__projects">';
-		foreach ( $query->posts as $post ) {
-			$summary = (string) teda_field( 'teda_summary', $post->ID, '' );
-			if ( '' === $summary ) {
-				$summary = wp_strip_all_tags( get_the_excerpt( $post ) );
+		foreach ( $goals as $goal ) {
+			$out .= '<div class="teda-project">';
+			if ( $goal['image'] > 0 ) {
+				$out .= wp_get_attachment_image( $goal['image'], 'medium', false, array( 'class' => 'teda-project__image', 'alt' => '' ) );
 			}
-			$out .= '<div class="teda-project"><h3>' . esc_html( get_the_title( $post ) ) . '</h3>';
-			if ( '' !== $summary ) {
-				$out .= '<p>' . esc_html( $summary ) . '</p>';
+			$out .= '<h3>' . esc_html( $goal['label'] ) . '</h3>';
+			if ( '' !== $goal['description'] ) {
+				$out .= '<p>' . esc_html( $goal['description'] ) . '</p>';
 			}
-			$out .= '<a class="teda-btn teda-btn--brown" href="#teda-donate-panel" data-teda-focus-area="' . esc_attr( (string) $post->ID ) . '">' . esc_html__( 'Give to this', 'teda-core' ) . '</a></div>';
+			$out .= '<a class="teda-btn teda-btn--brown" href="#teda-donate-panel" data-teda-goal="' . esc_attr( $goal['label'] ) . '">' . esc_html__( 'Give to this', 'teda-core' ) . '</a></div>';
 		}
-		wp_reset_postdata();
 
 		return $out . '</div></div>';
+	}
+
+	/**
+	 * The sticky panel's goal picker: always a "general fund" option plus one
+	 * radio per editor-authored goal, keyed by the goal's label (goals have no
+	 * post ID — the label is the identifier end-to-end, into the REST payload and
+	 * the DB `goal_label` column). Only rendered when at least one goal exists.
+	 *
+	 * @param array<int, array{label:string, description:string, image:int}> $goals Editor-authored donation goals.
+	 */
+	private function goal_picker( array $goals ): string {
+		$out  = '<fieldset class="teda-donate__goalpicker" data-teda-goalpicker>';
+		$out .= '<legend>' . esc_html__( 'Where should this go?', 'teda-core' ) . '</legend>';
+		$out .= '<label class="teda-donate__goaloption is-on"><input type="radio" name="teda_goal" value="" checked> '
+			. esc_html__( 'General fund — wherever needed most', 'teda-core' ) . '</label>';
+		foreach ( $goals as $goal ) {
+			$out .= '<label class="teda-donate__goaloption"><input type="radio" name="teda_goal" value="' . esc_attr( $goal['label'] ) . '"> '
+				. esc_html( $goal['label'] ) . '</label>';
+		}
+		return $out . '</fieldset>';
 	}
 
 	/**
@@ -319,22 +344,6 @@ final class Donate extends Block_Renderer {
 			return '';
 		}
 		return '<div class="teda-donate__warn" role="note"><h3>' . esc_html__( 'A note on safety', 'teda-core' ) . '</h3><p>' . esc_html( $text ) . '</p></div>';
-	}
-
-	/**
-	 * Recent updates — the latest News (GlobalGiving's project-reports pattern, §7).
-	 */
-	private function recent_updates(): string {
-		$news = render_block(
-			array(
-				'blockName'    => 'teda/news',
-				'attrs'        => array( 'eyebrow' => __( 'Recent updates', 'teda-core' ), 'heading' => __( 'What your gift has done', 'teda-core' ), 'count' => 3 ),
-				'innerBlocks'  => array(),
-				'innerHTML'    => '',
-				'innerContent' => array(),
-			)
-		);
-		return '<div class="teda-donate__section teda-donate__updates">' . $news . '</div>';
 	}
 
 	/**
@@ -378,9 +387,21 @@ final class Donate extends Block_Renderer {
 	/* ------------------------------------------------------------------ */
 
 	/**
-	 * The prefilled offline message, always in UGX (§ offline_route note).
+	 * The prefilled offline message, always in UGX (§ offline_route note). The
+	 * server-rendered initial state always omits the goal — a donor can only pick
+	 * one client-side, so `donate.js` is responsible for rewriting the WhatsApp/
+	 * email href once a goal is selected, exactly like it already does for
+	 * amount/frequency.
 	 */
-	private function message( int $ugx ): string {
+	private function message( int $ugx, string $goal_label = '' ): string {
+		if ( '' !== $goal_label ) {
+			return sprintf(
+				/* translators: 1: UGX amount, 2: goal label. */
+				__( 'Hello TEDA, I would like to donate UGX %1$s to %2$s as a one-off gift. Please tell me how to complete it.', 'teda-core' ),
+				number_format( $ugx ),
+				$goal_label
+			);
+		}
 		return sprintf(
 			/* translators: %s: UGX amount. */
 			__( 'Hello TEDA, I would like to donate UGX %s as a one-off gift. Please tell me how to complete it.', 'teda-core' ),
@@ -389,25 +410,59 @@ final class Donate extends Block_Renderer {
 	}
 
 	/**
-	 * This currency's five tiers, each a real amount in that currency — never
-	 * derived from the other currency.
+	 * This currency's amount tiers, read from `teda/donate-tier` inner blocks —
+	 * any number, never assumed to be a fixed count. Each amount is a real amount
+	 * in that currency, never derived from the other currency.
 	 *
-	 * @param array<string, mixed> $attributes Attributes.
 	 * @return array<int, array{amount:int, desc:string}>
 	 */
-	private function tiers( array $attributes, string $currency ): array {
-		$prefix = 'USD' === $currency ? 'usd' : 'ugx';
-		$tiers  = array();
-		for ( $n = 1; $n <= self::TIERS; $n++ ) {
-			$amount = $this->int_attr( $attributes, "{$prefix}_t{$n}_amount", 0, 0, PHP_INT_MAX );
+	private function tiers( WP_Block $block, string $currency ): array {
+		$tiers = array();
+		foreach ( $block->parsed_block['innerBlocks'] ?? array() as $inner ) {
+			if ( 'teda/donate-tier' !== ( $inner['blockName'] ?? '' ) ) {
+				continue;
+			}
+			$attrs         = $inner['attrs'] ?? array();
+			$tier_currency = isset( $attrs['currency'] ) && 'USD' === $attrs['currency'] ? 'USD' : 'UGX';
+			if ( $tier_currency !== $currency ) {
+				continue;
+			}
+			$amount = isset( $attrs['amount'] ) ? max( 0, (int) $attrs['amount'] ) : 0;
 			if ( $amount <= 0 ) {
 				continue;
 			}
 			$tiers[] = array(
 				'amount' => $amount,
-				'desc'   => $this->str_attr( $attributes, "{$prefix}_t{$n}_desc" ),
+				'desc'   => isset( $attrs['description'] ) && is_string( $attrs['description'] ) ? trim( $attrs['description'] ) : '',
 			);
 		}
 		return $tiers;
+	}
+
+	/**
+	 * Editor-authored donation goals, read from `teda/donate-goal` inner blocks —
+	 * any number. A goal with no label can't be meaningfully selected/targeted, so
+	 * it's skipped. Purely a routing label — no progress/target-raised tracking.
+	 *
+	 * @return array<int, array{label:string, description:string, image:int}>
+	 */
+	private function goals( WP_Block $block ): array {
+		$goals = array();
+		foreach ( $block->parsed_block['innerBlocks'] ?? array() as $inner ) {
+			if ( 'teda/donate-goal' !== ( $inner['blockName'] ?? '' ) ) {
+				continue;
+			}
+			$attrs = $inner['attrs'] ?? array();
+			$label = isset( $attrs['label'] ) && is_string( $attrs['label'] ) ? trim( $attrs['label'] ) : '';
+			if ( '' === $label ) {
+				continue;
+			}
+			$goals[] = array(
+				'label'       => $label,
+				'description' => isset( $attrs['description'] ) && is_string( $attrs['description'] ) ? trim( $attrs['description'] ) : '',
+				'image'       => isset( $attrs['image'] ) ? max( 0, (int) $attrs['image'] ) : 0,
+			);
+		}
+		return $goals;
 	}
 }

@@ -1,0 +1,20 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "teda/donate-goal",
+	"title": "TEDA Donation Goal",
+	"category": "teda",
+	"icon": "money-alt",
+	"description": "One donation goal inside a TEDA Donate block — a label, short description, and optional image donors can choose to give to. Can only be used inside teda/donate.",
+	"keywords": ["teda", "donate", "goal", "cause"],
+	"textdomain": "teda-core",
+	"parent": ["teda/donate"],
+	"attributes": {
+		"label": { "type": "string", "default": "" },
+		"description": { "type": "string", "default": "" },
+		"image": { "type": "integer", "default": 0 }
+	},
+	"supports": {
+		"html": false
+	}
+}
