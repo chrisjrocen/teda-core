@@ -3,7 +3,7 @@
  * Plugin Name:       TEDA Core
  * Plugin URI:        https://tedauganda.org
  * Description:       The TEDA content model — custom post types, taxonomies, meta fields, dynamic blocks, cron and redirects. Lives in a plugin (not the theme) so content survives a theme change. See SPEC.md §5 and PROMPTS.md D2/C10.
- * Version:           0.3.0
+ * Version:           0.4.0
  * Requires PHP:      8.1
  * Requires at least: 6.7
  * Author:            TEDA
@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Constants. Every later prompt relies on these.
  */
-define( 'TEDA_CORE_VERSION', '0.3.0' );
+define( 'TEDA_CORE_VERSION', '0.4.0' );
 define( 'TEDA_CORE_FILE', __FILE__ );
 define( 'TEDA_CORE_PATH', plugin_dir_path( __FILE__ ) );
 define( 'TEDA_CORE_URL', plugin_dir_url( __FILE__ ) );

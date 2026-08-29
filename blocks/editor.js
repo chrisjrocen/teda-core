@@ -16,11 +16,13 @@
  * teda/tabs and teda/tabs-item hold arbitrary nested blocks per tab, so they're
  * hand-registered below with real InnerBlocks edit()/save() (still no JSX, still
  * no build step) instead of going through the generic attribute-driven loop.
- * teda/donate-goal and teda/donate-tier are the same kind of exception (repeatable
- * goal/tier children of teda/donate). teda/donate itself stays in the generic
- * loop below but is special-cased via INNER_BLOCKS_CONFIG so its edit() renders
- * InnerBlocks areas for those children alongside its normal auto-generated
- * InspectorControls.
+ *
+ * teda/donate is a thin placement marker (its content — tiers, goals, trust
+ * copy — is admin-managed under Donations → Campaigns, not block attributes)
+ * with a single `campaign_id` attribute. It stays in the generic loop below;
+ * that attribute's `teda.control: "campaign_picker"` hint renders a SelectControl
+ * sourced from `window.tedaCampaigns` (localized by Blocks\Registry) instead of
+ * the usual text/number/toggle controls.
  */
 (function (wp, data) {
 	if (!wp || !wp.blocks || !data) {
@@ -63,8 +65,7 @@
 	/**
 	 * A single image-media control (select/replace/remove), shared by the
 	 * generic attribute-driven loop (control: "media" in block.json) and any
-	 * hand-registered block's edit() that needs the same widget, e.g.
-	 * teda/donate-goal's image field.
+	 * hand-registered block's edit() that needs the same widget.
 	 */
 	function mediaControl(key, label, value, onChange) {
 		return el(
@@ -121,6 +122,23 @@
 
 		if (control === 'media') {
 			return mediaControl(key, label, value, onChange);
+		}
+		if (control === 'campaign_picker') {
+			var campaigns = Array.isArray(window.tedaCampaigns) ? window.tedaCampaigns : [];
+			var options = [{ label: __('— Use the default campaign —', 'teda-core'), value: 0 }].concat(
+				campaigns.map(function (c) {
+					return { label: c.label, value: c.id };
+				})
+			);
+			return el(SelectControl, {
+				key: key,
+				label: label,
+				value: value || 0,
+				options: options,
+				onChange: function (v) {
+					onChange(parseInt(v, 10) || 0);
+				},
+			});
 		}
 		if (control === 'textarea') {
 			return el(TextareaControl, { key: key, label: label, rows: 3, value: value || '', onChange: onChange });
@@ -245,178 +263,21 @@
 	}
 
 	/**
-	 * teda/donate-goal — one editor-authored donation goal (label, short
-	 * description, image), a repeatable child of teda/donate. save() renders
-	 * plain semantic markup (persisted into post_content) but is never what a
-	 * visitor sees — teda/donate is a dynamic block that reads these children's
-	 * attributes server-side via $block->parsed_block['innerBlocks'] and builds
-	 * its own cards/picker markup instead.
-	 */
-	function registerDonateGoal() {
-		wp.blocks.registerBlockType('teda/donate-goal', {
-			title: __('TEDA Donation Goal', 'teda-core'),
-			category: 'teda',
-			icon: 'money-alt',
-			parent: ['teda/donate'],
-			attributes: {
-				label: { type: 'string', default: '' },
-				description: { type: 'string', default: '' },
-				image: { type: 'integer', default: 0 },
-			},
-			supports: { html: false },
-			edit: function (props) {
-				var attributes = props.attributes;
-				var setAttributes = props.setAttributes;
-				var blockProps = useBlockProps({ className: 'teda-donate-editor__goal' });
-				return el(
-					'div',
-					blockProps,
-					el(RichText, {
-						tagName: 'h4',
-						className: 'teda-donate-editor__goal-label',
-						value: attributes.label,
-						onChange: function (v) {
-							setAttributes({ label: v });
-						},
-						placeholder: __('Goal name', 'teda-core'),
-					}),
-					el(TextareaControl, {
-						label: __('Short description', 'teda-core'),
-						rows: 2,
-						value: attributes.description || '',
-						onChange: function (v) {
-							setAttributes({ description: v });
-						},
-					}),
-					mediaControl('image', __('Image', 'teda-core'), attributes.image, function (v) {
-						setAttributes({ image: v });
-					})
-				);
-			},
-			save: function (props) {
-				var attributes = props.attributes;
-				var blockProps = useBlockProps.save({ className: 'teda-donate-goal' });
-				return el(
-					'div',
-					blockProps,
-					el('h4', { className: 'teda-donate-goal__label' }, attributes.label),
-					attributes.description ? el('p', { className: 'teda-donate-goal__desc' }, attributes.description) : null
-				);
-			},
-		});
-	}
-
-	/**
-	 * teda/donate-tier — one preset donation amount (currency, amount,
-	 * description), a repeatable child of teda/donate. Same "data only" role as
-	 * teda/donate-goal — teda/donate reads these server-side, never render_block()s
-	 * their save() output.
-	 */
-	function registerDonateTier() {
-		wp.blocks.registerBlockType('teda/donate-tier', {
-			title: __('TEDA Donation Tier', 'teda-core'),
-			category: 'teda',
-			icon: 'tag',
-			parent: ['teda/donate'],
-			attributes: {
-				currency: { type: 'string', default: 'UGX', enum: ['UGX', 'USD'] },
-				amount: { type: 'integer', default: 0 },
-				description: { type: 'string', default: '' },
-			},
-			supports: { html: false },
-			edit: function (props) {
-				var attributes = props.attributes;
-				var setAttributes = props.setAttributes;
-				var blockProps = useBlockProps({ className: 'teda-donate-editor__tier' });
-				return el(
-					'div',
-					blockProps,
-					el(SelectControl, {
-						label: __('Currency', 'teda-core'),
-						value: attributes.currency,
-						options: [
-							{ label: 'UGX', value: 'UGX' },
-							{ label: 'USD', value: 'USD' },
-						],
-						onChange: function (v) {
-							setAttributes({ currency: v });
-						},
-					}),
-					el(TextControl, {
-						type: 'number',
-						label: __('Amount', 'teda-core'),
-						value: attributes.amount === undefined ? '' : attributes.amount,
-						onChange: function (v) {
-							setAttributes({ amount: v === '' ? 0 : parseInt(v, 10) });
-						},
-					}),
-					el(TextareaControl, {
-						label: __('Description', 'teda-core'),
-						rows: 2,
-						value: attributes.description || '',
-						onChange: function (v) {
-							setAttributes({ description: v });
-						},
-					})
-				);
-			},
-			save: function (props) {
-				var attributes = props.attributes;
-				var blockProps = useBlockProps.save({ className: 'teda-donate-tier', 'data-currency': attributes.currency });
-				return el(
-					'div',
-					blockProps,
-					el('b', { className: 'teda-donate-tier__amount' }, attributes.currency + ' ' + attributes.amount),
-					attributes.description ? el('p', { className: 'teda-donate-tier__desc' }, attributes.description) : null
-				);
-			},
-		});
-	}
-
-	/**
 	 * Per-block-name config for blocks that stay in the generic attribute-driven
 	 * loop below but also need an InnerBlocks area. Each slot gets its own
 	 * useInnerBlocksProps() region, rendered in the block's edit() alongside the
-	 * normal auto-generated InspectorControls.
-	 *
-	 * teda/donate uses ONE flat region allowing both teda/donate-goal and
-	 * teda/donate-tier children (goals and tiers are disambiguated by block type
-	 * and, for tiers, their own currency dropdown) — deliberately not three
-	 * separate sibling InnerBlocks regions. A single clientId only has one
-	 * underlying children order in the block-editor store; useInnerBlocksProps()
-	 * doesn't filter which existing children are *displayed* by allowedBlocks
-	 * (only which are insertable), so three simultaneous regions on one block
-	 * would each show the exact same combined list rather than three distinct
-	 * ones. One region, like teda/tabs already uses, is the pattern that
-	 * actually works.
+	 * normal auto-generated InspectorControls. Currently unused (teda/donate no
+	 * longer has InnerBlocks children — its content moved to admin-managed
+	 * Campaigns) but left in place as the mechanism for any future block that
+	 * needs it, e.g. teda/tabs already proves the "one region" pattern works.
 	 */
-	var INNER_BLOCKS_CONFIG = {
-		'teda/donate': {
-			slots: [
-				{
-					key: 'children',
-					allowedBlocks: ['teda/donate-goal', 'teda/donate-tier'],
-					template: [
-						['teda/donate-tier', { currency: 'UGX', amount: 20000, description: '' }],
-						['teda/donate-tier', { currency: 'UGX', amount: 50000, description: '' }],
-						['teda/donate-tier', { currency: 'USD', amount: 5, description: '' }],
-						['teda/donate-tier', { currency: 'USD', amount: 13, description: '' }],
-					],
-					templateLock: false,
-					wrapperClass: 'teda-donate-editor__children',
-					label: __('Donation goals & amount tiers', 'teda-core'),
-				},
-			],
-		},
-	};
+	var INNER_BLOCKS_CONFIG = {};
 
 	registerTabs();
 	registerTabsItem();
-	registerDonateGoal();
-	registerDonateTier();
 
 	data.forEach(function (b) {
-		if (b.name === 'teda/tabs' || b.name === 'teda/tabs-item' || b.name === 'teda/donate-goal' || b.name === 'teda/donate-tier') {
+		if (b.name === 'teda/tabs' || b.name === 'teda/tabs-item') {
 			return;
 		}
 
@@ -450,11 +311,11 @@
 					return el(PanelBody, { key: grp.title, title: grp.title, initialOpen: gi === 0 }, grp.controls);
 				});
 
-				// Blocks configured in INNER_BLOCKS_CONFIG (currently just
-				// teda/donate) get one useInnerBlocksProps() region per slot,
-				// rendered in the block's own content area — same "always
-				// called in the same order for this block type" pattern as any
-				// other hook, since `config` is a static lookup by block name.
+				// Blocks configured in INNER_BLOCKS_CONFIG get one
+				// useInnerBlocksProps() region per slot, rendered in the
+				// block's own content area — same "always called in the same
+				// order for this block type" pattern as any other hook,
+				// since `config` is a static lookup by block name.
 				var config = INNER_BLOCKS_CONFIG[b.name];
 				var innerBlocksAreas = config
 					? config.slots.map(function (slot) {

@@ -7,14 +7,19 @@ declare(strict_types=1);
 
 namespace Teda_Core\Blocks;
 
+use Teda_Core\Donations\Campaigns_Repository;
+use Teda_Core\Support\Empty_State;
 use WP_Block;
-use WP_Post;
 
 /**
  * teda/donate — the donation page (SPEC §7, D11, P20). Phase 1 shipped a
  * complete OFFLINE experience: mobile money + bank + prefilled WhatsApp/email,
- * driven by an amount selector. Phase 2 (this file) adds a real LIVE route via
- * Pesapal (Teda_Core\Donations) for donors who prefer online checkout.
+ * driven by an amount selector. Phase 2 added a real LIVE route via Pesapal
+ * (Teda_Core\Donations) for donors who prefer online checkout. Phase 3 (this
+ * revision) moved all of the block's content — lead copy, trust copy,
+ * channels, tiers, goals — out of the page editor into admin-managed
+ * Campaigns (Teda_Core\Donations\Campaigns_Repository); this block is now
+ * just a thin placement marker carrying a `campaign_id` attribute.
  *
  * Mode comes from the Customizer setting `teda_donate_mode` (offline|live, default
  * offline). Live mode only renders a real payment path when a gateway is configured
@@ -36,39 +41,67 @@ final class Donate extends Block_Renderer {
 		return 'teda/donate';
 	}
 
+	protected function is_empty( array $attributes, WP_Block $block ): bool {
+		return null === $this->campaign( $attributes );
+	}
+
+	protected function render_empty( array $attributes, WP_Block $block ): string {
+		return Empty_State::render( 'donate' );
+	}
+
+	/**
+	 * @return array<string, mixed>|null
+	 */
+	private function campaign( array $attributes ): ?array {
+		$campaign_id = $this->int_attr( $attributes, 'campaign_id', 0, 0, PHP_INT_MAX );
+		return ( new Campaigns_Repository() )->resolve_for_block( $campaign_id );
+	}
+
 	protected function render_content( array $attributes, string $content, WP_Block $block ): string {
+		$campaign = $this->campaign( $attributes );
+		if ( null === $campaign ) {
+			return '';
+		}
+		$attributes = array_merge( $attributes, $campaign );
+
 		$currency = $this->str_attr( $attributes, 'currency_default', 'UGX' );
 		$currency = 'USD' === $currency ? 'USD' : 'UGX';
 
-		$tiers = array(
-			'UGX' => $this->tiers( $block, 'UGX' ),
-			'USD' => $this->tiers( $block, 'USD' ),
-		);
+		$tiers       = $attributes['tiers'];
 		$default_set = $tiers[ $currency ];
 		$default     = $default_set[1] ?? ( $default_set[0] ?? array( 'amount' => 0, 'desc' => '' ) ); // 2nd tier is the pre-selected amount.
 
 		$out  = '<div class="teda-donate" id="teda-donate">';
-		$out .= '<div class="teda-donate__grid">';
 
-		// Main column.
-		$out .= '<div class="teda-donate__main">';
+		// Main column. Built into a variable first so we know whether it ended
+		// up empty (a sparse campaign can leave lead/tiers/goals/antifraud all
+		// blank) — an empty main column is omitted entirely rather than left as
+		// a hollow wrapper, and the grid gets a modifier class so the sticky
+		// panel can expand to fill the row instead of sitting in a narrow
+		// sidebar next to nothing (teda-child's blocks.css).
+		$main_html = '';
 		$lead = $this->str_attr( $attributes, 'lead' );
 		if ( '' !== $lead ) {
-			$out .= '<p class="teda-donate__lead">' . esc_html( $lead ) . '</p>';
+			$main_html .= '<p class="teda-donate__lead">' . esc_html( $lead ) . '</p>';
 		}
-		$goals = $this->goals( $block );
+		$goals = $attributes['goals'];
 
-		$out .= $this->impact_tiers( $tiers, $currency );
+		$main_html .= $this->impact_tiers( $tiers, $currency );
 		if ( $this->bool_attr( $attributes, 'show_projects', true ) && array() !== $goals ) {
-			$out .= $this->goal_cards( $goals );
+			$main_html .= $this->goal_cards( $goals );
 		}
 		if ( $this->bool_attr( $attributes, 'show_antifraud', true ) ) {
-			$out .= $this->antifraud( $attributes );
+			$main_html .= $this->antifraud( $attributes );
 		}
-		$out .= '</div>';
+
+		$grid_empty = '' === trim( $main_html );
+		$out .= '<div class="teda-donate__grid' . ( $grid_empty ? ' teda-donate__grid--panel-only' : '' ) . '">';
+		if ( ! $grid_empty ) {
+			$out .= '<div class="teda-donate__main">' . $main_html . '</div>';
+		}
 
 		// Sticky panel.
-		$out .= $this->panel( $attributes, $tiers, $currency, $goals, $block );
+		$out .= $this->panel( $attributes, $tiers, $currency, $goals );
 
 		$out .= '</div>'; // grid
 
@@ -93,7 +126,7 @@ final class Donate extends Block_Renderer {
 	 * @param array<string, array<int, array<string, mixed>>> $tiers    Tiers keyed by currency.
 	 * @param array<int, array{label:string, description:string, image:int}> $goals Editor-authored donation goals.
 	 */
-	private function panel( array $attributes, array $tiers, string $currency, array $goals, WP_Block $block ): string {
+	private function panel( array $attributes, array $tiers, string $currency, array $goals ): string {
 		$mode       = (string) get_theme_mod( 'teda_donate_mode', 'offline' );
 		$configured = (bool) apply_filters( 'teda_core/donate/live_configured', false );
 
@@ -105,7 +138,7 @@ final class Donate extends Block_Renderer {
 		// Admin-only warning when live mode is on but no gateway exists.
 		if ( 'live' === $mode && ! $configured && current_user_can( 'manage_options' ) ) {
 			$out .= '<div class="teda-donate__adminnotice"><strong>' . esc_html__( 'Live mode is on but no payment gateway is configured.', 'teda-core' )
-				. '</strong> ' . esc_html__( 'Visitors are seeing the offline donation route. Add Pesapal credentials and register the IPN URL under Donations → Settings.', 'teda-core' ) . '</div>';
+				. '</strong> ' . esc_html__( 'Visitors are seeing the offline donation route. Add Pesapal credentials and register the IPN URL under Donations → Payment Settings.', 'teda-core' ) . '</div>';
 		}
 
 		$out .= '<h2 class="teda-donate__paneltitle">' . esc_html__( 'Make a donation', 'teda-core' ) . '</h2>';
@@ -121,7 +154,7 @@ final class Donate extends Block_Renderer {
 		// shown when a gateway is actually configured — never in phase 1).
 		$out .= ( 'live' === $mode && $configured )
 			? $this->live_route( $attributes, $default, $currency )
-			: $this->offline_route( $attributes, $block );
+			: $this->offline_route( $attributes );
 
 		$out .= '</aside>';
 
@@ -190,10 +223,10 @@ final class Donate extends Block_Renderer {
 	 * regardless of which currency is toggled above; the amount is still always
 	 * explicit, never inferred.
 	 *
-	 * @param array<string, mixed> $attributes Attributes.
+	 * @param array<string, mixed> $attributes Attributes (includes the campaign's hydrated `tiers`).
 	 */
-	private function offline_route( array $attributes, WP_Block $block ): string {
-		$ugx_tiers = $this->tiers( $block, 'UGX' );
+	private function offline_route( array $attributes ): string {
+		$ugx_tiers = $attributes['tiers']['UGX'];
 		$default   = $ugx_tiers[1] ?? ( $ugx_tiers[0] ?? array( 'amount' => 0, 'desc' => '' ) );
 
 		$whatsapp = preg_replace( '/\D+/', '', $this->str_attr( $attributes, 'whatsapp', '256700000000' ) );
@@ -271,6 +304,10 @@ final class Donate extends Block_Renderer {
 	 * @param array<string, array<int, array<string, mixed>>> $tiers Tiers keyed by currency.
 	 */
 	private function impact_tiers( array $tiers, string $currency ): string {
+		if ( array() === $tiers['UGX'] && array() === $tiers['USD'] ) {
+			return '';
+		}
+
 		$out = '<div class="teda-donate__section"><span class="teda-eyebrow">' . esc_html__( 'Your impact', 'teda-core' ) . '</span>'
 			. '<h2 class="teda-display">' . esc_html__( 'What your gift does', 'teda-core' ) . '</h2>';
 
@@ -374,11 +411,26 @@ final class Donate extends Block_Renderer {
 		$bank  = $this->str_attr( $attributes, 'bank' );
 		$email = $this->str_attr( $attributes, 'email', 'tedayouthteso@gmail.com' );
 
+		// Each card renders only if its own field has content, so a sparse
+		// campaign (e.g. no bank details entered) doesn't show a hollow card
+		// with just a heading. The whole section is skipped if none survive.
+		$cards = '';
+		if ( '' !== $mtn ) {
+			$cards .= '<div class="teda-way"><h3>' . esc_html__( 'Mobile money', 'teda-core' ) . '</h3><p>' . esc_html__( 'Send directly to our registered organization line.', 'teda-core' ) . '</p><code>' . esc_html( $mtn ) . '</code></div>';
+		}
+		if ( '' !== $bank ) {
+			$cards .= '<div class="teda-way"><h3>' . esc_html__( 'Bank transfer', 'teda-core' ) . '</h3><p>' . esc_html( $bank ) . '</p></div>';
+		}
+		if ( '' !== $email ) {
+			$cards .= '<div class="teda-way"><h3>' . esc_html__( 'In kind &amp; time', 'teda-core' ) . '</h3><p>' . esc_html__( 'Books, seedlings, equipment, or your skills as a volunteer mentor.', 'teda-core' ) . '</p><code>' . esc_html( $email ) . '</code></div>';
+		}
+
+		if ( '' === $cards ) {
+			return '';
+		}
+
 		$out = '<div class="teda-donate__section"><span class="teda-eyebrow">' . esc_html__( 'Other ways to give', 'teda-core' ) . '</span>'
-			. '<h2 class="teda-display">' . esc_html__( 'Prefer another route?', 'teda-core' ) . '</h2><div class="teda-donate__ways">';
-		$out .= '<div class="teda-way"><h3>' . esc_html__( 'Mobile money', 'teda-core' ) . '</h3><p>' . esc_html__( 'Send directly to our registered organization line.', 'teda-core' ) . '</p>' . ( '' !== $mtn ? '<code>' . esc_html( $mtn ) . '</code>' : '' ) . '</div>';
-		$out .= '<div class="teda-way"><h3>' . esc_html__( 'Bank transfer', 'teda-core' ) . '</h3><p>' . esc_html( $bank ) . '</p></div>';
-		$out .= '<div class="teda-way"><h3>' . esc_html__( 'In kind &amp; time', 'teda-core' ) . '</h3><p>' . esc_html__( 'Books, seedlings, equipment, or your skills as a volunteer mentor.', 'teda-core' ) . '</p><code>' . esc_html( $email ) . '</code></div>';
+			. '<h2 class="teda-display">' . esc_html__( 'Prefer another route?', 'teda-core' ) . '</h2><div class="teda-donate__ways">' . $cards;
 		return $out . '</div></div>';
 	}
 
@@ -409,60 +461,4 @@ final class Donate extends Block_Renderer {
 		);
 	}
 
-	/**
-	 * This currency's amount tiers, read from `teda/donate-tier` inner blocks —
-	 * any number, never assumed to be a fixed count. Each amount is a real amount
-	 * in that currency, never derived from the other currency.
-	 *
-	 * @return array<int, array{amount:int, desc:string}>
-	 */
-	private function tiers( WP_Block $block, string $currency ): array {
-		$tiers = array();
-		foreach ( $block->parsed_block['innerBlocks'] ?? array() as $inner ) {
-			if ( 'teda/donate-tier' !== ( $inner['blockName'] ?? '' ) ) {
-				continue;
-			}
-			$attrs         = $inner['attrs'] ?? array();
-			$tier_currency = isset( $attrs['currency'] ) && 'USD' === $attrs['currency'] ? 'USD' : 'UGX';
-			if ( $tier_currency !== $currency ) {
-				continue;
-			}
-			$amount = isset( $attrs['amount'] ) ? max( 0, (int) $attrs['amount'] ) : 0;
-			if ( $amount <= 0 ) {
-				continue;
-			}
-			$tiers[] = array(
-				'amount' => $amount,
-				'desc'   => isset( $attrs['description'] ) && is_string( $attrs['description'] ) ? trim( $attrs['description'] ) : '',
-			);
-		}
-		return $tiers;
-	}
-
-	/**
-	 * Editor-authored donation goals, read from `teda/donate-goal` inner blocks —
-	 * any number. A goal with no label can't be meaningfully selected/targeted, so
-	 * it's skipped. Purely a routing label — no progress/target-raised tracking.
-	 *
-	 * @return array<int, array{label:string, description:string, image:int}>
-	 */
-	private function goals( WP_Block $block ): array {
-		$goals = array();
-		foreach ( $block->parsed_block['innerBlocks'] ?? array() as $inner ) {
-			if ( 'teda/donate-goal' !== ( $inner['blockName'] ?? '' ) ) {
-				continue;
-			}
-			$attrs = $inner['attrs'] ?? array();
-			$label = isset( $attrs['label'] ) && is_string( $attrs['label'] ) ? trim( $attrs['label'] ) : '';
-			if ( '' === $label ) {
-				continue;
-			}
-			$goals[] = array(
-				'label'       => $label,
-				'description' => isset( $attrs['description'] ) && is_string( $attrs['description'] ) ? trim( $attrs['description'] ) : '',
-				'image'       => isset( $attrs['image'] ) ? max( 0, (int) $attrs['image'] ) : 0,
-			);
-		}
-		return $goals;
-	}
 }

@@ -50,11 +50,34 @@ final class Accessor {
 
 	/**
 	 * Boolean (switch/checkbox) value.
+	 *
+	 * Deliberately does NOT route through get() — a switch is a checkbox under
+	 * the hood, and Meta Box deletes the meta row entirely when one is
+	 * submitted unchecked (rather than storing 0/''), so an explicit "off" is
+	 * indistinguishable from "field never touched" at the storage layer. get()
+	 * treats both as absent and substitutes $default, which is correct for
+	 * text fields (where "absent" and "explicitly blank" should both read as
+	 * '') but wrong here whenever $default is true: an intentional "off" would
+	 * silently read back as "on". So once Meta Box is confirmed active and a
+	 * post id resolves, this trusts the raw value directly — deleted/empty
+	 * means false, full stop. $default is only used for the two genuine
+	 * can't-know cases: Meta Box inactive, or no post id.
 	 */
 	public static function get_bool( string $key, ?int $post_id = null, bool $default = false ): bool {
-		$value = self::get( $key, $post_id, null );
+		if ( ! function_exists( 'rwmb_meta' ) ) {
+			return $default;
+		}
 
-		return null === $value ? $default : (bool) $value;
+		if ( null === $post_id ) {
+			$current = get_the_ID();
+			$post_id = false !== $current ? (int) $current : null;
+		}
+
+		if ( null === $post_id ) {
+			return $default;
+		}
+
+		return (bool) rwmb_meta( $key, array(), $post_id );
 	}
 
 	/**

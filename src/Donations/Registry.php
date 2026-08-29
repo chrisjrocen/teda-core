@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace Teda_Core\Donations;
 
+use Teda_Core\Admin\Campaign_Repeater;
 use Teda_Core\Admin\Notices;
 use Teda_Core\Support\Bootable;
 
@@ -23,6 +24,7 @@ final class Registry implements Bootable {
 
 	public function register(): void {
 		add_action( 'teda_core/upgrade', array( Migrations::class, 'run' ) );
+		add_action( 'teda_core/upgrade', array( Campaign_Migration::class, 'run' ) );
 
 		add_action( 'rest_api_init', array( $this, 'register_routes' ) );
 
@@ -37,8 +39,11 @@ final class Registry implements Bootable {
 		add_shortcode( 'teda_donation_status', array( $this, 'shortcode_status' ) );
 		add_shortcode( 'teda_donation_unsubscribed', array( $this, 'shortcode_unsubscribed' ) );
 
+		( new Campaign_Repeater() )->register();
+
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {
 			\WP_CLI::add_command( 'teda send-pledge-reminders', array( $this, 'cli_send_pledge_reminders' ) );
+			\WP_CLI::add_command( 'teda migrate-donate-campaigns', array( $this, 'cli_migrate_donate_campaigns' ) );
 		}
 	}
 
@@ -60,7 +65,7 @@ final class Registry implements Bootable {
 		}
 
 		Notices::add(
-			__( 'Donation mode is set to "Live" but Pesapal is not fully configured yet — visitors still see the offline donation route. Save your Pesapal credentials and register the IPN URL under Donations → Settings.', 'teda-core' ),
+			__( 'Donation mode is set to "Live" but Pesapal is not fully configured yet — visitors still see the offline donation route. Save your Pesapal credentials and register the IPN URL under Donations → Payment Settings.', 'teda-core' ),
 			'warning'
 		);
 	}
@@ -99,6 +104,22 @@ final class Registry implements Bootable {
 	public function cli_send_pledge_reminders( $args, $assoc_args ): void {
 		$sent = ( new Pledge_Reminders() )->send_all();
 		\WP_CLI::success( sprintf( 'Sent %d pledge reminder(s).', $sent ) );
+	}
+
+	/**
+	 * `wp teda migrate-donate-campaigns [--force]` — run the one-time
+	 * donate-content migration on demand. Without `--force` this is a no-op if
+	 * it already ran (the idempotency guard Campaign_Migration::run() checks
+	 * automatically on every `teda_core/upgrade`); `--force` bypasses that
+	 * guard for local testing or a deliberate recovery re-run.
+	 *
+	 * @param array<int, string>    $args       Unused.
+	 * @param array<string, string> $assoc_args Reads `force`.
+	 */
+	public function cli_migrate_donate_campaigns( $args, $assoc_args ): void {
+		$force = ! empty( $assoc_args['force'] );
+		Campaign_Migration::run( $force );
+		\WP_CLI::success( 'Donation campaign migration complete.' );
 	}
 
 	/**

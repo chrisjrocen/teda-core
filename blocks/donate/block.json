@@ -5,27 +5,11 @@
 	"title": "TEDA Donate",
 	"category": "teda",
 	"icon": "heart",
-	"description": "The full donation page: amount selector, impact tiers, donation goals, trust strip and other ways to give. Add teda/donate-goal and teda/donate-tier children to make goals and amount tiers editable. Phase 1 routes the gift offline (mobile money, bank, prefilled WhatsApp/email); phase 2 turns on live payments from the Customizer with no redesign.",
-	"keywords": ["teda", "donate", "give", "fundraising"],
+	"description": "Placement marker for the donation page — picks which admin-managed Campaign to render (Donations → Campaigns in wp-admin). Content (lead copy, trust copy, channels, amount tiers, donation goals) lives on the Campaign, not here.",
+	"keywords": ["teda", "donate", "give", "fundraising", "campaign"],
 	"textdomain": "teda-core",
 	"attributes": {
-		"lead": { "type": "string", "default": "Every contribution goes directly into education, health, climate action, and youth leadership across the Teso sub-region.", "role": "content", "teda": { "control": "textarea" } },
-		"currency_default": { "type": "string", "default": "UGX" },
-
-		"show_projects": { "type": "boolean", "default": true, "role": "content", "teda": { "group": "Sections" } },
-		"show_antifraud": { "type": "boolean", "default": true, "role": "content", "teda": { "group": "Sections" } },
-		"show_trust_strip": { "type": "boolean", "default": true, "role": "content", "teda": { "group": "Sections" } },
-		"show_other_ways": { "type": "boolean", "default": true, "role": "content", "teda": { "group": "Sections" } },
-
-		"whatsapp": { "type": "string", "default": "256700000000", "role": "content", "teda": { "group": "Channels" } },
-		"email": { "type": "string", "default": "tedayouthteso@gmail.com", "role": "content", "teda": { "group": "Channels" } },
-		"mtn": { "type": "string", "default": "MTN MoMo · [number to confirm before launch] · TEDA", "role": "content", "teda": { "group": "Channels" } },
-		"airtel": { "type": "string", "default": "Airtel Money · [number to confirm before launch] · TEDA", "role": "content", "teda": { "group": "Channels" } },
-		"bank": { "type": "string", "default": "Bank account details published at launch — request them by WhatsApp or email.", "role": "content", "teda": { "control": "textarea", "group": "Channels" } },
-
-		"registration": { "type": "string", "default": "TEDA is a registered community organization operating in the Teso sub-region. Registration number: [to be confirmed before launch].", "role": "content", "teda": { "control": "textarea", "group": "Trust" } },
-		"accountability": { "type": "string", "default": "Programme spending is reported in our annual accountability report, published openly on this site.", "role": "content", "teda": { "control": "textarea", "group": "Trust" } },
-		"antifraud": { "type": "string", "default": "Until our verified payment platform is live, TEDA accepts donations only through the channels published on this page. If you see any other website or contact claiming to collect money on TEDA’s behalf, do not send funds — report it to tedayouthteso@gmail.com.", "role": "content", "teda": { "control": "textarea", "group": "Trust" } }
+		"campaign_id": { "type": "integer", "default": 0, "role": "content", "teda": { "control": "campaign_picker" } }
 	},
 	"supports": {
 		"html": false,

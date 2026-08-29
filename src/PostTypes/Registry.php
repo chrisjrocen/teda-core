@@ -25,6 +25,7 @@ final class Registry implements Bootable {
 		Team::class,
 		Space::class,
 		Publication::class,
+		Campaign::class,
 	);
 
 	public function register(): void {

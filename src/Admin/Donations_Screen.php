@@ -14,15 +14,18 @@ use Teda_Core\Donations\Repository;
 use Teda_Core\Support\Bootable;
 
 /**
- * The donations admin screen (Administrators only, via WP's own `manage_options`
- * capability check on the menu — Admin\Roles already hides menus a content
- * volunteer doesn't need, but donation records are PII so this is gated
- * independently rather than relying on menu visibility alone).
+ * The Donations admin menu. Donation records and Pesapal credentials are
+ * Administrators-only (`manage_options`, checked independently of menu
+ * visibility since donation records are PII); the Campaigns submenu (fundraising
+ * content — lead copy, tiers, goals) is `edit_posts`, so Editors can run
+ * campaigns without needing full admin access — see add_menu().
  *
- * Three surfaces: a list of donations (the weekly reconciliation starting
- * point, SPEC §7), a CSV export of that list (the actual reconciliation
- * artifact), and a settings panel showing config status plus the one-time
- * "Register IPN" action.
+ * Surfaces: a list of donations (the weekly reconciliation starting point,
+ * SPEC §7), a CSV export of that list (the actual reconciliation artifact), the
+ * Campaigns CPT list/edit screens (native WP, registered here but rendered by
+ * core — see Admin\Campaign_Repeater for the tiers/goals meta box on each
+ * Campaign's edit screen), and a payment settings panel showing config status
+ * plus the one-time "Register IPN" action.
  */
 final class Donations_Screen implements Bootable {
 
@@ -51,10 +54,23 @@ final class Donations_Screen implements Bootable {
 			'teda-donations',
 			array( $this, 'render_list' )
 		);
+		// Campaigns is `edit_posts` — Editors manage fundraising content (lead
+		// copy, tiers, goals) without needing `manage_options`, which stays
+		// reserved for donation records (PII) and Pesapal credentials below.
+		// Pointing straight at the native CPT list table means capability
+		// enforcement on the actual edit/create screens comes from WordPress
+		// core (teda_campaign's capability_type), not custom code here.
 		add_submenu_page(
 			'teda-donations',
-			__( 'Donation Settings', 'teda-core' ),
-			__( 'Settings', 'teda-core' ),
+			__( 'Campaigns', 'teda-core' ),
+			__( 'Campaigns', 'teda-core' ),
+			'edit_posts',
+			'edit.php?post_type=teda_campaign'
+		);
+		add_submenu_page(
+			'teda-donations',
+			__( 'Payment Settings', 'teda-core' ),
+			__( 'Payment Settings', 'teda-core' ),
 			'manage_options',
 			'teda-donations-settings',
 			array( $this, 'render_settings' )

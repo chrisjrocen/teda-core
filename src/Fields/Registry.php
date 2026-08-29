@@ -30,6 +30,7 @@ final class Registry implements Bootable {
 		Groups\Space::class,
 		Groups\News::class,
 		Groups\Publication::class,
+		Groups\Campaign::class,
 	);
 
 	public function register(): void {

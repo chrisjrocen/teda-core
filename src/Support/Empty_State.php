@@ -21,7 +21,7 @@ final class Empty_State {
 
 	/**
 	 * Render the empty state for a context: events | news | spaces | opportunities
-	 * | publications | gallery | team | default. Unknown contexts fall back to
+	 * | publications | gallery | team | donate | default. Unknown contexts fall back to
 	 * `default`.
 	 *
 	 * @param string               $context One of the known contexts.
@@ -113,6 +113,16 @@ final class Empty_State {
 					'actions' => array(
 						array( 'label' => __( 'About TEDA', 'teda-core' ), 'url' => home_url( '/about/' ), 'primary' => true ),
 						array( 'label' => __( 'Ask us a question', 'teda-core' ), 'url' => home_url( '/contact/' ) ),
+					),
+				);
+				break;
+
+			case 'donate':
+				$config = array(
+					'heading' => __( "Donations aren't open right now", 'teda-core' ),
+					'text'    => __( 'Please check back soon, or contact us directly if you would like to give.', 'teda-core' ),
+					'actions' => array(
+						array( 'label' => __( 'Contact us', 'teda-core' ), 'url' => home_url( '/contact/' ), 'primary' => true ),
 					),
 				);
 				break;

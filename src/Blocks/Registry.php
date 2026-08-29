@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace Teda_Core\Blocks;
 
+use Teda_Core\Donations\Campaigns_Repository;
 use Teda_Core\Support\Bootable;
 
 /**
@@ -89,6 +90,11 @@ final class Registry implements Bootable {
 			true
 		);
 		wp_localize_script( $handle, 'tedaBlocks', $this->editor_data() );
+
+		// Kept as its own global (rather than folded into tedaBlocks, which every
+		// other block's edit() also reads) so this addition touches no other
+		// block's data shape — only teda/donate's campaign_picker control reads it.
+		wp_localize_script( $handle, 'tedaCampaigns', ( new Campaigns_Repository() )->options_for_editor() );
 	}
 
 	/**
