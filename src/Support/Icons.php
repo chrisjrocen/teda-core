@@ -53,4 +53,17 @@ final class Icons {
 	public static function has_focus( string $key ): bool {
 		return isset( self::PATHS[ $key ] );
 	}
+
+	/**
+	 * A single microphone glyph used as the Spaces card fallback when a post has no
+	 * featured image (SPEC §3.1: an icon and a label always accompany colour).
+	 * Spaces has no per-post icon field like Focus Area's `teda_icon` select, so
+	 * this is fixed rather than keyed.
+	 */
+	public static function space(): string {
+		return '<svg class="teda-icon" viewBox="0 0 24 24" width="28" height="28" aria-hidden="true" '
+			. 'fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">'
+			. '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/><path d="M8.5 21h7"/>'
+			. '</svg>';
+	}
 }
