@@ -5,7 +5,7 @@
 	"title": "TEDA Team",
 	"category": "teda",
 	"icon": "groups",
-	"description": "A grid of verified team members — photo (or initials), name linking to their full bio, role, a short bio and social links. Shows a designed empty state until at least one member is verified.",
+	"description": "Team members grouped into three sections — Leadership Team, Internal Team, International Support Team — each a grid of photo (or initials), name linking to their full bio, role, a short bio and social links. Shows a designed empty state until at least one member is categorised.",
 	"keywords": [
 		"teda",
 		"team",
@@ -31,7 +31,8 @@
 		},
 		"count": {
 			"type": "integer",
-			"default": 12
+			"default": 12,
+			"description": "Max members shown per section (Leadership / Internal / International Support), not a total across all three."
 		}
 	},
 	"supports": {

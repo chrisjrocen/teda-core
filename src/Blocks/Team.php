@@ -12,12 +12,17 @@ use WP_Block;
 use WP_Post;
 
 /**
- * teda/team — published team members, ordered by teda_order (SPEC §5.1). A member
- * is live the moment their post is published; draft is the "not ready yet" state,
- * there is no separate verified flag to flip (Query::get() already restricts to
- * post_status=publish). Each card links to the member's single page (see
- * single-teda_team.php) for their full, untruncated bio. With no team member
- * published yet it renders the shared "team" empty state rather than a gap.
+ * teda/team — published team members, grouped into three fixed sections by the
+ * `team_category` taxonomy (Leadership Team, Internal Team, International
+ * Support Team), each ordered by teda_order (SPEC §5.1). A member is live the
+ * moment their post is published; draft is the "not ready yet" state, there is
+ * no separate verified flag to flip (Query::get() already restricts to
+ * post_status=publish). A member with no team_category term assigned is simply
+ * omitted from every section — categorising members is a manual admin task,
+ * not something this block infers. Each card links to the member's single page
+ * (see single-teda_team.php) for their full, untruncated bio. With no
+ * categorised team member published yet it renders the shared "team" empty
+ * state rather than a gap.
  *
  * avatar_html() and social_links_html() are public so the theme's
  * single-teda_team.php can reuse the exact same card markup for a member's own
@@ -26,9 +31,22 @@ use WP_Post;
 final class Team extends Block_Renderer {
 
 	/**
+	 * Fixed section order — Leadership first (SPEC: featured/prominent
+	 * treatment), then Internal, then International Support. Looked up by term
+	 * name (not slug) at query time so a renamed term still resolves.
+	 *
+	 * @var array<int, array{label: string, featured: bool}>
+	 */
+	private const SECTIONS = array(
+		array( 'label' => 'Leadership Team', 'featured' => true ),
+		array( 'label' => 'Internal Team', 'featured' => false ),
+		array( 'label' => 'International Support Team', 'featured' => false ),
+	);
+
+	/**
 	 * Memoised query result keyed by "count|gate|last_changed".
 	 *
-	 * @var array<string, array<int, WP_Post>>
+	 * @var array<string, array<int, array{label: string, featured: bool, posts: array<int, WP_Post>}>>
 	 */
 	private array $cache = array();
 
@@ -52,7 +70,13 @@ final class Team extends Block_Renderer {
 	}
 
 	protected function is_empty( array $attributes, WP_Block $block ): bool {
-		return array() === $this->members( $attributes );
+		foreach ( $this->members_by_category( $attributes ) as $section ) {
+			if ( array() !== $section['posts'] ) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	protected function render_empty( array $attributes, WP_Block $block ): string {
@@ -60,12 +84,24 @@ final class Team extends Block_Renderer {
 	}
 
 	protected function render_content( array $attributes, string $content, WP_Block $block ): string {
-		$out  = $this->header( $attributes );
-		$out .= '<div class="teda-team__list">';
-		foreach ( $this->members( $attributes ) as $post ) {
-			$out .= $this->card( $post );
+		$out = $this->header( $attributes );
+
+		foreach ( $this->members_by_category( $attributes ) as $section ) {
+			if ( array() === $section['posts'] ) {
+				continue;
+			}
+
+			$list_class = 'teda-team__list' . ( $section['featured'] ? ' teda-team__list--featured' : '' );
+
+			$out .= '<div class="teda-team__section">';
+			$out .= '<h3 class="teda-team__section-heading">' . esc_html( $section['label'] ) . '</h3>';
+			$out .= '<div class="' . esc_attr( $list_class ) . '">';
+			foreach ( $section['posts'] as $post ) {
+				$out .= $this->card( $post );
+			}
+			$out .= '</div>';
+			$out .= '</div>';
 		}
-		$out .= '</div>';
 
 		return $out;
 	}
@@ -238,29 +274,49 @@ final class Team extends Block_Renderer {
 	}
 
 	/**
-	 * Published team members, ordered by teda_order then title.
+	 * Published team members for each of the three fixed sections, ordered by
+	 * teda_order then title, capped per section at $count (default 12, hard
+	 * cap Query::MAX). A member with no matching term is omitted; a section
+	 * whose term doesn't exist (e.g. taxonomy not yet seeded) is simply empty.
 	 *
 	 * @param array<string, mixed> $attributes Attributes.
-	 * @return array<int, WP_Post>
+	 * @return array<int, array{label: string, featured: bool, posts: array<int, WP_Post>}>
 	 */
-	private function members( array $attributes ): array {
+	private function members_by_category( array $attributes ): array {
 		$count = $this->int_attr( $attributes, 'count', 12, 1, Query::MAX );
-		$key   = $count . '|' . wp_cache_get_last_changed( 'posts' );
+		$key   = $count . '|' . wp_cache_get_last_changed( 'posts' ) . '|' . wp_cache_get_last_changed( 'terms' );
 		if ( isset( $this->cache[ $key ] ) ) {
 			return $this->cache[ $key ];
 		}
 
-		$this->cache[ $key ] = Query::get(
-			array(
-				'post_type'      => 'teda_team',
-				'posts_per_page' => $count,
-				'meta_key'       => 'teda_order',
-				'orderby'        => array(
-					'meta_value_num' => 'ASC',
-					'title'          => 'ASC',
-				),
-			)
-		)->posts;
+		$sections = array();
+		foreach ( self::SECTIONS as $section ) {
+			$term  = get_term_by( 'name', $section['label'], 'team_category' );
+			$posts = false !== $term
+				? Query::get(
+					array(
+						'post_type'      => 'teda_team',
+						'posts_per_page' => $count,
+						'meta_key'       => 'teda_order',
+						'orderby'        => array(
+							'meta_value_num' => 'ASC',
+							'title'          => 'ASC',
+						),
+						'tax_query'      => array(
+							array( 'taxonomy' => 'team_category', 'field' => 'term_id', 'terms' => $term->term_id ),
+						),
+					)
+				)->posts
+				: array();
+
+			$sections[] = array(
+				'label'    => $section['label'],
+				'featured' => $section['featured'],
+				'posts'    => $posts,
+			);
+		}
+
+		$this->cache[ $key ] = $sections;
 
 		return $this->cache[ $key ];
 	}
