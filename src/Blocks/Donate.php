@@ -217,11 +217,14 @@ final class Donate extends Block_Renderer {
 	}
 
 	/**
-	 * The OFFLINE route (mobile money + bank + prefilled WhatsApp/email). These
-	 * channels are UGX-denominated in practice (local mobile money, local bank
-	 * account), so — unlike the live route — this always quotes the UGX tiers,
-	 * regardless of which currency is toggled above; the amount is still always
-	 * explicit, never inferred.
+	 * The OFFLINE route (mobile money + bank + WhatsApp/email). These channels
+	 * are UGX-denominated in practice (local mobile money, local bank account),
+	 * so — unlike the live route — this always quotes the UGX tiers, regardless
+	 * of which currency is toggled above; the amount is still always explicit,
+	 * never inferred. The WhatsApp CTA sends a fixed, generic message (not
+	 * amount/goal/frequency-specific) — donors are asked for those details once
+	 * a human picks up the conversation. Email keeps the prefilled amount/goal/
+	 * frequency message via message() below.
 	 *
 	 * @param array<string, mixed> $attributes Attributes (includes the campaign's hydrated `tiers`).
 	 */
@@ -234,8 +237,9 @@ final class Donate extends Block_Renderer {
 		$mtn      = $this->str_attr( $attributes, 'mtn' );
 		$airtel   = $this->str_attr( $attributes, 'airtel' );
 
-		$msg      = $this->message( (int) $default['amount'] );
-		$wa_href  = 'https://wa.me/' . rawurlencode( (string) $whatsapp ) . '?text=' . rawurlencode( $msg );
+		$msg       = $this->message( (int) $default['amount'] );
+		$wa_msg    = __( 'Hi TEDA, I would like to donate. May you please guide me', 'teda-core' );
+		$wa_href   = 'https://wa.me/' . rawurlencode( (string) $whatsapp ) . '?text=' . rawurlencode( $wa_msg );
 		$mail_sub = __( 'Donation to TEDA', 'teda-core' );
 		$mail_href = 'mailto:' . rawurlencode( $email ) . '?subject=' . rawurlencode( $mail_sub ) . '&body=' . rawurlencode( $msg );
 
@@ -252,12 +256,10 @@ final class Donate extends Block_Renderer {
 		}
 		$out .= '</div>';
 
-		$out .= '<a class="teda-btn teda-btn--green teda-btn--lg teda-donate__cta" data-teda-whatsapp href="' . esc_url( $wa_href ) . '" data-teda-base="https://wa.me/' . esc_attr( (string) $whatsapp ) . '?text=">'
-			. esc_html__( 'Tell us on WhatsApp', 'teda-core' ) . '</a>';
+		$out .= '<a class="teda-btn teda-btn--green teda-btn--lg teda-donate__cta" href="' . esc_url( $wa_href ) . '">'
+			. esc_html__( 'Donate', 'teda-core' ) . '</a>';
 		$out .= '<a class="teda-btn teda-btn--ghost-b teda-donate__cta" data-teda-email href="' . esc_url( $mail_href ) . '" data-teda-base="mailto:' . esc_attr( $email ) . '?subject=' . esc_attr( rawurlencode( $mail_sub ) ) . '&amp;body=">'
 			. esc_html__( 'Email us', 'teda-core' ) . '</a>';
-
-		$out .= '<p class="teda-donate__note">' . esc_html__( 'Prefer USD or card? Turn on live checkout above once it is configured — it charges the exact currency you choose.', 'teda-core' ) . '</p>';
 
 		return $out . '</div>';
 	}
@@ -407,17 +409,16 @@ final class Donate extends Block_Renderer {
 	 * @param array<string, mixed> $attributes Attributes.
 	 */
 	private function other_ways( array $attributes ): string {
-		$mtn   = $this->str_attr( $attributes, 'mtn' );
 		$bank  = $this->str_attr( $attributes, 'bank' );
 		$email = $this->str_attr( $attributes, 'email', 'tedayouthteso@gmail.com' );
 
-		// Each card renders only if its own field has content, so a sparse
-		// campaign (e.g. no bank details entered) doesn't show a hollow card
-		// with just a heading. The whole section is skipped if none survive.
+		// Mobile money is intentionally omitted here — it's already shown in the
+		// sticky panel's offline route, so repeating it here would just duplicate
+		// the same card. Each remaining card renders only if its own field has
+		// content, so a sparse campaign (e.g. no bank details entered) doesn't
+		// show a hollow card with just a heading. The whole section is skipped
+		// if none survive.
 		$cards = '';
-		if ( '' !== $mtn ) {
-			$cards .= '<div class="teda-way"><h3>' . esc_html__( 'Mobile money', 'teda-core' ) . '</h3><p>' . esc_html__( 'Send directly to our registered organization line.', 'teda-core' ) . '</p><code>' . esc_html( $mtn ) . '</code></div>';
-		}
 		if ( '' !== $bank ) {
 			$cards .= '<div class="teda-way"><h3>' . esc_html__( 'Bank transfer', 'teda-core' ) . '</h3><p>' . esc_html( $bank ) . '</p></div>';
 		}

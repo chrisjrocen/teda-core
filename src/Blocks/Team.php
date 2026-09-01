@@ -13,7 +13,7 @@ use WP_Post;
 
 /**
  * teda/team — published team members, grouped into three fixed sections by the
- * `team_category` taxonomy (Leadership Team, Internal Team, International
+ * `team_category` taxonomy (Internal Team, Leadership Team, International
  * Support Team), each ordered by teda_order (SPEC §5.1). A member is live the
  * moment their post is published; draft is the "not ready yet" state, there is
  * no separate verified flag to flip (Query::get() already restricts to
@@ -31,22 +31,22 @@ use WP_Post;
 final class Team extends Block_Renderer {
 
 	/**
-	 * Fixed section order — Leadership first (SPEC: featured/prominent
-	 * treatment), then Internal, then International Support. Looked up by term
-	 * name (not slug) at query time so a renamed term still resolves.
+	 * Fixed section order — Internal Team first, then Leadership Team, then
+	 * International Support Team. Looked up by term name (not slug) at query
+	 * time so a renamed term still resolves.
 	 *
-	 * @var array<int, array{label: string, featured: bool}>
+	 * @var array<int, string>
 	 */
 	private const SECTIONS = array(
-		array( 'label' => 'Leadership Team', 'featured' => true ),
-		array( 'label' => 'Internal Team', 'featured' => false ),
-		array( 'label' => 'International Support Team', 'featured' => false ),
+		'Internal Team',
+		'Leadership Team',
+		'International Support Team',
 	);
 
 	/**
 	 * Memoised query result keyed by "count|gate|last_changed".
 	 *
-	 * @var array<string, array<int, array{label: string, featured: bool, posts: array<int, WP_Post>}>>
+	 * @var array<string, array<int, array{label: string, posts: array<int, WP_Post>}>>
 	 */
 	private array $cache = array();
 
@@ -91,11 +91,9 @@ final class Team extends Block_Renderer {
 				continue;
 			}
 
-			$list_class = 'teda-team__list' . ( $section['featured'] ? ' teda-team__list--featured' : '' );
-
 			$out .= '<div class="teda-team__section">';
 			$out .= '<h3 class="teda-team__section-heading">' . esc_html( $section['label'] ) . '</h3>';
-			$out .= '<div class="' . esc_attr( $list_class ) . '">';
+			$out .= '<div class="teda-team__list">';
 			foreach ( $section['posts'] as $post ) {
 				$out .= $this->card( $post );
 			}
@@ -280,7 +278,7 @@ final class Team extends Block_Renderer {
 	 * whose term doesn't exist (e.g. taxonomy not yet seeded) is simply empty.
 	 *
 	 * @param array<string, mixed> $attributes Attributes.
-	 * @return array<int, array{label: string, featured: bool, posts: array<int, WP_Post>}>
+	 * @return array<int, array{label: string, posts: array<int, WP_Post>}>
 	 */
 	private function members_by_category( array $attributes ): array {
 		$count = $this->int_attr( $attributes, 'count', 12, 1, Query::MAX );
@@ -290,8 +288,8 @@ final class Team extends Block_Renderer {
 		}
 
 		$sections = array();
-		foreach ( self::SECTIONS as $section ) {
-			$term  = get_term_by( 'name', $section['label'], 'team_category' );
+		foreach ( self::SECTIONS as $label ) {
+			$term  = get_term_by( 'name', $label, 'team_category' );
 			$posts = false !== $term
 				? Query::get(
 					array(
@@ -310,9 +308,8 @@ final class Team extends Block_Renderer {
 				: array();
 
 			$sections[] = array(
-				'label'    => $section['label'],
-				'featured' => $section['featured'],
-				'posts'    => $posts,
+				'label' => $label,
+				'posts' => $posts,
 			);
 		}
 
