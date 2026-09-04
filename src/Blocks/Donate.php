@@ -179,12 +179,12 @@ final class Donate extends Block_Renderer {
 			. '</div>';
 
 		$out .= '<div class="teda-donate__cur" role="group" aria-label="' . esc_attr__( 'Currency', 'teda-core' ) . '">'
-			. '<button type="button" class="teda-chip' . ( 'UGX' === $currency ? ' is-on' : '' ) . '" data-teda-cur="UGX" aria-pressed="' . ( 'UGX' === $currency ? 'true' : 'false' ) . '">UGX</button>'
 			. '<button type="button" class="teda-chip' . ( 'USD' === $currency ? ' is-on' : '' ) . '" data-teda-cur="USD" aria-pressed="' . ( 'USD' === $currency ? 'true' : 'false' ) . '">USD</button>'
+			. '<button type="button" class="teda-chip' . ( 'UGX' === $currency ? ' is-on' : '' ) . '" data-teda-cur="UGX" aria-pressed="' . ( 'UGX' === $currency ? 'true' : 'false' ) . '">UGX</button>'
 			. '</div>';
 
-		$out .= $this->amount_group( 'UGX', $tiers['UGX'], $default, $currency );
 		$out .= $this->amount_group( 'USD', $tiers['USD'], $default, $currency );
+		$out .= $this->amount_group( 'UGX', $tiers['UGX'], $default, $currency );
 
 		$out .= '<label class="teda-donate__customwrap" hidden><span class="teda-donate__customlabel" data-teda-customlabel>' . esc_html( sprintf(
 			/* translators: %s: currency code. */
@@ -313,7 +313,7 @@ final class Donate extends Block_Renderer {
 		$out = '<div class="teda-donate__section"><span class="teda-eyebrow">' . esc_html__( 'Your impact', 'teda-core' ) . '</span>'
 			. '<h2 class="teda-display">' . esc_html__( 'What your gift does', 'teda-core' ) . '</h2>';
 
-		foreach ( array( 'UGX', 'USD' ) as $group_currency ) {
+		foreach ( array( 'USD', 'UGX' ) as $group_currency ) {
 			$hidden = $group_currency !== $currency;
 			$out   .= '<div class="teda-donate__tiers" data-teda-tier-cur="' . esc_attr( $group_currency ) . '"' . ( $hidden ? ' hidden' : '' ) . '>';
 			foreach ( $tiers[ $group_currency ] as $tier ) {

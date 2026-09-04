@@ -57,6 +57,7 @@ final class Scheduler implements Bootable {
 			// update_post_meta is itself idempotent, but the query already excludes
 			// anything already closed, so each write here is a real transition.
 			update_post_meta( $id, 'teda_is_open', '0' );
+			Closed_At::apply( $id, false );
 			++$closed;
 		}
 

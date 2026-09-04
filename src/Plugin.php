@@ -43,6 +43,7 @@ final class Plugin {
 		Forms\Registry::class,
 		Spaces\Presenter::class,
 		Cron\Scheduler::class,
+		Cron\Closed_At::class,
 		Donations\Registry::class,
 		Redirects\Map::class,
 		Seo\Config::class,

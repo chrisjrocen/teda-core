@@ -40,6 +40,20 @@ final class Opportunity {
 					'desc'         => __( 'Roughly how much time it takes. e.g. 5 hours a week.', 'teda-core' ),
 				),
 				array(
+					'name'         => __( 'Application link', 'teda-core' ),
+					'id'           => 'teda_application_url',
+					'type'         => 'url',
+					'show_in_rest' => true,
+					'desc'         => __( 'Where applicants apply, e.g. a Google Form. Takes priority over the email below.', 'teda-core' ),
+				),
+				array(
+					'name'         => __( 'Application email', 'teda-core' ),
+					'id'           => 'teda_application_email',
+					'type'         => 'text',
+					'show_in_rest' => true,
+					'desc'         => __( 'Used only if no application link is set above. The Apply button becomes a pre-filled email link.', 'teda-core' ),
+				),
+				array(
 					'name'         => __( 'Application deadline', 'teda-core' ),
 					'id'           => 'teda_deadline',
 					'type'         => 'date',
